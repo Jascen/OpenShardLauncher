@@ -1,10 +1,8 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace OpenShardLauncher.Server.Tests;
 
-public sealed class HealthEndpointTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class HealthEndpointTests(FeedServerFactory factory) : IClassFixture<FeedServerFactory>
 {
     [Fact]
     public async Task Health_ReturnsOk()
