@@ -1,0 +1,38 @@
+namespace OpenShardLauncher.Core.Model;
+
+// Why a run stopped. Presentation maps these to text; Core has no player-facing strings.
+public enum UpdateError
+{
+    Unknown,
+    ConnectionFailed,
+    BadData, // The server sent something that couldn't be parsed
+    InsecureServer, // Plain http to another machine without "Allow insecure downloads"
+    NothingPublished, // files.json is 404: the server has no files published yet
+    FeedUntrusted, // files.json has no valid signature from a trusted key (or is a rollback)
+    FeedUpdating, // files.json and its signature still don't match after a refetch, or a blob is missing: mid-upload
+    NoTrustedKeys, // The launcher was built with no keys and without AllowUnsignedFeed, so it can never update
+    InstallFolderNotWritable,
+    DiskFull,
+    FileFailed, // A file couldn't be downloaded after the retries; the file name is in UpdateOutcome.FailedFiles
+    FileLocked, // A file is open in another program, usually the game
+}
+
+// Problems with packages (TazUO, launcher). They only warn: game files still update.
+public enum PackageWarning
+{
+    ManifestUnreachable,
+    ManifestUntrusted,
+    ManifestUpdating,
+    PackagesNotConfigured, // No trusted keys, so packages are disabled
+    TazUOInstallFailed,
+    SelfUpdateFailed,
+}
+
+// Thrown across the boundary interfaces when an operation fails for a reason the workflow reports to the player.
+public sealed class UpdateException(UpdateError error, string? fileName = null, Exception? inner = null)
+    : Exception($"{error}{(fileName is null ? "" : $": {fileName}")}", inner)
+{
+    public UpdateError Error { get; } = error;
+
+    public string? FileName { get; } = fileName;
+}

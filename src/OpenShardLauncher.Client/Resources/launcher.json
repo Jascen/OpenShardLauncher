@@ -1,6 +1,17 @@
 {
   "Title": "OpenShardLauncher",
+  "Subtitle": "",
   "UpdateUrl": "http://127.0.0.1:8080/",
   "TrustedPublicKeys": [],
-  "AllowUnsignedFeed": false
+  "AllowUnsignedFeed": false,
+  "Links": [],
+  "KeepLocalPatterns": [],
+  "AppDataFolderName": "OpenShardLauncher",
+  "DefaultInstallFolder": "Game",
+  "TazUO": {
+    "Enabled": true,
+    "InstallFolder": "TazUO",
+    "ExecutableName": "TazUOLauncher"
+  },
+  "PackageCheckInterval": "04:00:00"
 }
