@@ -1,0 +1,32 @@
+# Build output
+bin/
+obj/
+artifacts/
+publish/
+TestResults/
+*.binlog
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Developer-only launcher options (test keys, AllowUnsignedFeed). Read by Debug builds only; never commit.
+launcher.local.json
+
+# Private signing keys and Publisher state
+*.pem
+*.key
+.publisher-state/
+
+# Launcher data and cache folders created when running locally
+.openshardlauncher/
+.openshardlauncher-cache/
+.temp/

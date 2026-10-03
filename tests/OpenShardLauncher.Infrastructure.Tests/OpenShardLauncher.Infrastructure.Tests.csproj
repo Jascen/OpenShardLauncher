@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- No tests yet: don't fail on "zero tests ran" (exit code 8). Remove with the first test. -->
+    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --ignore-exit-code 8</TestingPlatformCommandLineArguments>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OpenShardLauncher.Infrastructure\OpenShardLauncher.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

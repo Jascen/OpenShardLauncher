@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Domain, use cases and file storage. No Avalonia and no HTTP: the network and processes are reached
+       only through the boundary interfaces in Abstractions/. -->
+  <ItemGroup>
+    <Using Remove="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenShardLauncher.Shared\OpenShardLauncher.Shared.csproj" />
+  </ItemGroup>
+</Project>

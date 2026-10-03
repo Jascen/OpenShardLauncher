@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- HTTP, feed verification and processes (game launch, self-update hand-off). -->
+  <ItemGroup>
+    <ProjectReference Include="..\OpenShardLauncher.Core\OpenShardLauncher.Core.csproj" />
+  </ItemGroup>
+</Project>

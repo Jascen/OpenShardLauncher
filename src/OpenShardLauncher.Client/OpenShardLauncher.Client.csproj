@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>$(LauncherExeName)</AssemblyName>
+    <RootNamespace>OpenShardLauncher.Client</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Build-time launcher options (title, update URL, trusted keys). Forks edit this file. -->
+    <EmbeddedResource Include="Resources\launcher.json" LogicalName="launcher.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenShardLauncher.Core\OpenShardLauncher.Core.csproj" />
+    <ProjectReference Include="..\OpenShardLauncher.Infrastructure\OpenShardLauncher.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
