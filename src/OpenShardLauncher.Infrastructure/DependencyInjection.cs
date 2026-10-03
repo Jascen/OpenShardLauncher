@@ -4,6 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using OpenShardLauncher.Core.Abstractions;
+using OpenShardLauncher.Core.Files;
+using OpenShardLauncher.Core.Model;
+using OpenShardLauncher.Core.Packages;
+using OpenShardLauncher.Core.Workflow;
 using OpenShardLauncher.Infrastructure.Http;
 using OpenShardLauncher.Infrastructure.Platform;
 
@@ -28,10 +32,25 @@ public static class DependencyInjection
         services.TryAddSingleton<FeedVerifier>();
         services.TryAddTransient<SecureTransportHandler>();
         services.TryAddTransient<ServerBusyHandler>();
+        services.TryAddSingleton(new PlatformInfo(PlatformId.Current));
         services.AddRetryPipelines();
 
         services.AddHttpClient<ResumableDownloader>().AddFeedClientDefaults();
         services.AddHttpClient<IUpdateServer, UpdateServerClient>().AddFeedClientDefaults();
+        return services;
+    }
+
+    // Registers the Core use cases (UpdateWorkflow and its stages, PackageCheckService) on top of the infrastructure.
+    // The composition root also registers an IGameLauncher (phase 7: TazUOLauncher).
+    public static IServiceCollection AddOpenShardLauncherWorkflow(this IServiceCollection services, Action<WorkflowOptions>? configure = null)
+    {
+        var options = new WorkflowOptions();
+        configure?.Invoke(options);
+        services.TryAddSingleton(options);
+        services.TryAddSingleton<CompareStage>();
+        services.TryAddSingleton<DownloadStage>();
+        services.TryAddSingleton<PackageCheckService>();
+        services.TryAddSingleton<UpdateWorkflow>();
         return services;
     }
 
