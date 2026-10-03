@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Builds and signs the whole feed (files.json, blobs, package manifest) on the machine that holds the private key. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OpenShardLauncher.Shared\OpenShardLauncher.Shared.csproj" />
+  </ItemGroup>
+</Project>

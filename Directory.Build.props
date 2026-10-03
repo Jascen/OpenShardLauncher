@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <IsPackable>false</IsPackable>
+
+    <!-- Player-facing exe name of the launcher (the Client's AssemblyName). Forks change this.
+         Stable once released: self-update looks for an exe of this name in the package. -->
+    <LauncherExeName>OpenShardLauncher</LauncherExeName>
+
+    <!-- Compiled bindings everywhere. Only read by projects that use Avalonia. -->
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+</Project>
