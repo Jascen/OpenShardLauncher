@@ -1,0 +1,22 @@
+<!-- The links along the top, from launcher.json. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenShardLauncher.Client.ViewModels"
+             xmlns:model="using:OpenShardLauncher.Core.Model"
+             x:Class="OpenShardLauncher.Client.Views.Controls.NavBar"
+             x:DataType="vm:NavBarViewModel">
+  <ItemsControl ItemsSource="{Binding Links}">
+    <ItemsControl.ItemsPanel>
+      <ItemsPanelTemplate>
+        <StackPanel Orientation="Horizontal" />
+      </ItemsPanelTemplate>
+    </ItemsControl.ItemsPanel>
+    <ItemsControl.ItemTemplate>
+      <DataTemplate DataType="model:NavLink">
+        <Button Classes="nav" Content="{Binding Text}"
+                Command="{Binding $parent[ItemsControl].((vm:NavBarViewModel)DataContext).OpenLinkCommand}"
+                CommandParameter="{Binding}" />
+      </DataTemplate>
+    </ItemsControl.ItemTemplate>
+  </ItemsControl>
+</UserControl>

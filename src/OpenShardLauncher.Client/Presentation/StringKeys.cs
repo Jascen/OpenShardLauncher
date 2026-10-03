@@ -1,8 +1,20 @@
 namespace OpenShardLauncher.Client.Presentation;
 
-// Keys into Strings.resx (added in phase 5). The comment says what the {n} arguments are.
+// Keys into Resources/Strings.resx. The comment says what the {n} arguments are.
 public static class StringKeys
 {
+    // Main window
+    public const string PlayButton = nameof(PlayButton);
+    public const string DownloadButton = nameof(DownloadButton);
+    public const string RetryButton = nameof(RetryButton);
+    public const string ShowIgnoredButton = nameof(ShowIgnoredButton);
+    public const string IgnoredSkipped = nameof(IgnoredSkipped); // {0} = number of files and folders
+    public const string SettingsTooltip = nameof(SettingsTooltip);
+    public const string MinimizeTooltip = nameof(MinimizeTooltip);
+    public const string CloseTooltip = nameof(CloseTooltip);
+    public const string CancelTooltip = nameof(CancelTooltip);
+    public const string DataFolderFallbackNotice = nameof(DataFolderFallbackNotice);
+
     // Status line
     public const string CheckingForUpdates = nameof(CheckingForUpdates);
     public const string StartingDownload = nameof(StartingDownload);
@@ -14,6 +26,8 @@ public static class StringKeys
     public const string CheckFailed = nameof(CheckFailed);
     public const string DownloadFailed = nameof(DownloadFailed);
     public const string Cancelled = nameof(Cancelled);
+    public const string NotVerified = nameof(NotVerified); // Verify on launch is off
+    public const string NoFolderChosen = nameof(NoFolderChosen); // The install folder can't be used
 
     // Progress
     public const string FetchingFileList = nameof(FetchingFileList);
@@ -40,6 +54,8 @@ public static class StringKeys
     public const string DiskFullError = nameof(DiskFullError);
     public const string FileFailedError = nameof(FileFailedError); // {0} = file name
     public const string FileLockedError = nameof(FileLockedError); // {0} = file name
+    public const string InstallFolderNotAllowedError = nameof(InstallFolderNotAllowedError);
+    public const string LaunchError = nameof(LaunchError);
 
     // Package warnings
     public const string ManifestUnreachableWarning = nameof(ManifestUnreachableWarning);

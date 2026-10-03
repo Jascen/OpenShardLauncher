@@ -1,7 +1,9 @@
-using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Microsoft.Extensions.DependencyInjection;
+using OpenShardLauncher.Client.Composition;
+using OpenShardLauncher.Client.ViewModels;
 using OpenShardLauncher.Client.Views;
 
 namespace OpenShardLauncher.Client;
@@ -14,18 +16,20 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow { Title = ReadTitle() };
+            var host = LauncherHost.Build(AppContext.BaseDirectory);
+            var viewModel = host.Services.GetRequiredService<MainWindowViewModel>();
+            var window = new MainWindow { DataContext = viewModel };
+            window.Opened += (_, _) => viewModel.StartCommand.Execute(null);
+            desktop.MainWindow = window;
+
+            // Cancels anything still running and flushes the log.
+            desktop.Exit += (_, _) =>
+            {
+                viewModel.Dispose();
+                host.Dispose();
+            };
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    // Placeholder until phase 5 binds the embedded launcher.json to LauncherOptions through the host.
-    private static string ReadTitle()
-    {
-        using var stream = typeof(App).Assembly.GetManifestResourceStream("launcher.json")
-            ?? throw new InvalidOperationException("The embedded launcher.json is missing.");
-        using var json = JsonDocument.Parse(stream);
-        return json.RootElement.GetProperty("Title").GetString() ?? "";
     }
 }

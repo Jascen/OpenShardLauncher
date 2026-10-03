@@ -1,0 +1,9 @@
+<!-- The center button: downloads waiting updates, then plays. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenShardLauncher.Client.ViewModels"
+             x:Class="OpenShardLauncher.Client.Views.Controls.PlayButton"
+             x:DataType="vm:MainWindowViewModel">
+  <Button Classes="play" Content="{Binding MainButtonText}" Command="{Binding MainActionCommand}"
+          IsVisible="{Binding IsMainButtonVisible}" HorizontalAlignment="Center" />
+</UserControl>

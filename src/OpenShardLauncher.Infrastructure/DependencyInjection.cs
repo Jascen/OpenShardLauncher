@@ -41,7 +41,7 @@ public static class DependencyInjection
     }
 
     // Registers the Core use cases (UpdateWorkflow and its stages, PackageCheckService) on top of the infrastructure.
-    // The composition root also registers an IGameLauncher (phase 7: TazUOLauncher).
+    // The composition root also registers an IGameLauncher (TazUOLauncher).
     public static IServiceCollection AddOpenShardLauncherWorkflow(this IServiceCollection services, Action<WorkflowOptions>? configure = null)
     {
         var options = new WorkflowOptions();

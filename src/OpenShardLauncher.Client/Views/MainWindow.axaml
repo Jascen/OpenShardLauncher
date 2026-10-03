@@ -1,5 +1,84 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenShardLauncher.Client.ViewModels"
+        xmlns:views="using:OpenShardLauncher.Client.Views"
+        xmlns:controls="using:OpenShardLauncher.Client.Views.Controls"
         x:Class="OpenShardLauncher.Client.Views.MainWindow"
-        Width="800" Height="500"
-        WindowStartupLocation="CenterScreen" />
+        x:DataType="vm:MainWindowViewModel"
+        Width="900" Height="675" CanResize="False"
+        WindowDecorations="None" WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}" Icon="/Assets/icon.ico"
+        Title="{Binding Title}"
+        PointerPressed="Window_PointerPressed">
+  <Grid>
+    <!-- Art -->
+    <Image Source="{x:Static views:LauncherArt.Background}" Stretch="UniformToFill" />
+
+    <!-- Darken the edges and the top/bottom bands so text and controls stay readable over any art -->
+    <Border IsHitTestVisible="False">
+      <Border.Background>
+        <RadialGradientBrush RadiusX="75%" RadiusY="75%">
+          <GradientStop Offset="0.45" Color="#00000000" />
+          <GradientStop Offset="1" Color="#E0000000" />
+        </RadialGradientBrush>
+      </Border.Background>
+    </Border>
+    <Border IsHitTestVisible="False">
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+          <GradientStop Offset="0" Color="#D0000000" />
+          <GradientStop Offset="0.12" Color="#00000000" />
+          <GradientStop Offset="0.62" Color="#00000000" />
+          <GradientStop Offset="1" Color="#F0000000" />
+        </LinearGradientBrush>
+      </Border.Background>
+    </Border>
+    <Border IsHitTestVisible="False" BorderBrush="{DynamicResource WindowBorderBrush}" BorderThickness="2" />
+
+    <Grid RowDefinitions="Auto,*,Auto">
+      <!-- Top bar: links centered, window buttons on the right -->
+      <Grid Grid.Row="0" Height="60">
+        <controls:NavBar DataContext="{Binding NavBar}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0" Spacing="4">
+          <Button Classes="chrome settings" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="{views:Text SettingsTooltip}" AutomationProperties.Name="{views:Text SettingsTooltip}">
+            <Path Width="20" Height="20" Stretch="Uniform" Fill="{DynamicResource ChromeGlyphBrush}"
+                  Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+          </Button>
+          <Button Classes="chrome minimize" Click="Minimize_Click" ToolTip.Tip="{views:Text MinimizeTooltip}" AutomationProperties.Name="{views:Text MinimizeTooltip}">
+            <Border Width="14" Height="3" Background="{DynamicResource ChromeGlyphBrush}" CornerRadius="1" />
+          </Button>
+          <Button Classes="chrome close" Click="Close_Click" ToolTip.Tip="{views:Text CloseTooltip}" AutomationProperties.Name="{views:Text CloseTooltip}">
+            <Path Data="M 0,0 L 14,14 M 14,0 L 0,14" Stroke="{DynamicResource ChromeGlyphBrush}" StrokeThickness="2.5" />
+          </Button>
+        </StackPanel>
+      </Grid>
+
+      <!-- Title and play button -->
+      <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
+        <TextBlock Text="{Binding Title}" FontFamily="{DynamicResource DisplayFont}"
+                   FontSize="92" FontWeight="Bold" LetterSpacing="4"
+                   HorizontalAlignment="Center" Foreground="{DynamicResource TitleBrush}">
+          <TextBlock.Effect>
+            <DropShadowEffect Color="{StaticResource TitleGlowColor}" BlurRadius="28" OffsetX="0" OffsetY="0" Opacity="0.85" />
+          </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Text="{Binding Subtitle}" FontFamily="{DynamicResource DisplayFont}" FontSize="17"
+                   HorizontalAlignment="Center" Foreground="{DynamicResource SubtitleBrush}">
+          <TextBlock.Effect>
+            <DropShadowEffect Color="Black" BlurRadius="6" OffsetX="0" OffsetY="1" Opacity="1" />
+          </TextBlock.Effect>
+        </TextBlock>
+        <controls:PlayButton HorizontalAlignment="Center" Margin="0,28,0,0" />
+      </StackPanel>
+
+      <!-- Status lines and progress: top bar = all files, bottom bar = current file -->
+      <Grid Grid.Row="2" Height="170">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,34" Spacing="6">
+          <controls:StatusBar />
+          <controls:ProgressPanel DataContext="{Binding Progress}" />
+        </StackPanel>
+      </Grid>
+    </Grid>
+  </Grid>
+</Window>
