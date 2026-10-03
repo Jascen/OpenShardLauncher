@@ -17,7 +17,12 @@ public sealed record FileList(long Version, IReadOnlyList<FileEntry> Files, IRea
     public byte[] ToJsonBytes() => JsonSerializer.SerializeToUtf8Bytes(this, FeedJsonContext.Default.FileList);
 
     // Only trust the result after the bytes' signature has been checked (or AllowUnsignedFeed applied)
-    public static FileList Parse(ReadOnlySpan<byte> json)
+    public static FileList Parse(ReadOnlySpan<byte> json) => Parse(json, onInvalidEntry: null);
+
+    // Like Parse, but an entry with an invalid name, hash or size, or a repeated name, is left out and described to
+    // onInvalidEntry instead of failing the whole list. The launcher uses this so one bad entry (a Publisher bug) doesn't
+    // stop every other file from updating. The document itself (version, shape) must still be valid.
+    public static FileList Parse(ReadOnlySpan<byte> json, Action<string>? onInvalidEntry)
     {
         FileList? list;
         try
@@ -34,38 +39,59 @@ public sealed record FileList(long Version, IReadOnlyList<FileEntry> Files, IRea
             throw new InvalidDataException($"{FeedLayout.FileListPath} is empty.");
         }
 
-        list.Validate();
-        return list;
+        return list.Validate(onInvalidEntry);
     }
 
-    private void Validate()
+    private FileList Validate(Action<string>? onInvalidEntry)
     {
         if (Version <= 0)
         {
             throw new InvalidDataException($"{FeedLayout.FileListPath} has no version.");
         }
 
+        void Invalid(string problem)
+        {
+            if (onInvalidEntry is null)
+            {
+                throw new InvalidDataException($"{FeedLayout.FileListPath} {problem}.");
+            }
+
+            onInvalidEntry(problem);
+        }
+
         // Case-insensitive, because two names differing only by case are one file on Windows and macOS
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var files = new List<FileEntry>(Files.Count);
         foreach (var file in Files)
         {
-            if (string.IsNullOrEmpty(file.Name) || !Sha256Hex.IsValid(file.Sha256) || file.Size < 0)
+            // A null element isn't caught by the serializer's nullable checks
+            if (file is null || string.IsNullOrEmpty(file.Name) || !Sha256Hex.IsValid(file.Sha256) || file.Size < 0)
             {
-                throw new InvalidDataException($"{FeedLayout.FileListPath} has an invalid entry '{file.Name}'.");
+                Invalid($"has an invalid entry '{file?.Name}'");
             }
-
-            if (!names.Add(file.Name))
+            else if (!names.Add(file.Name))
             {
-                throw new InvalidDataException($"{FeedLayout.FileListPath} lists '{file.Name}' twice.");
+                Invalid($"lists '{file.Name}' twice");
+            }
+            else
+            {
+                files.Add(file);
             }
         }
 
-        foreach (var removed in Removed)
+        var removed = new List<RemovedEntry>(Removed.Count);
+        foreach (var entry in Removed)
         {
-            if (string.IsNullOrEmpty(removed.Name))
+            if (entry is null || string.IsNullOrEmpty(entry.Name))
             {
-                throw new InvalidDataException($"{FeedLayout.FileListPath} has a removed entry without a name.");
+                Invalid("has a removed entry without a name");
+            }
+            else
+            {
+                removed.Add(entry);
             }
         }
+
+        return files.Count == Files.Count && removed.Count == Removed.Count ? this : this with { Files = files, Removed = removed };
     }
 }
