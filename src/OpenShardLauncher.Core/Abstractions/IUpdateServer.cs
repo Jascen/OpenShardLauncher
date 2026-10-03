@@ -1,4 +1,5 @@
 using OpenShardLauncher.Core.Model;
+using OpenShardLauncher.Core.Storage;
 using OpenShardLauncher.Shared.Feed;
 
 namespace OpenShardLauncher.Core.Abstractions;
@@ -14,12 +15,14 @@ public interface IUpdateServer
     // packages/manifest.json, verified the same way.
     Task<FeedResult<PackageManifest>> GetPackageManifestAsync(CancellationToken cancellationToken);
 
-    // Downloads blobs/<aa>/<sha256>, checks its size and hash and moves it to destinationPath (replacing a file
-    // there). Reports bytes of this file received so far. Throws UpdateException (e.g. FileLocked, FeedUpdating for
-    // a missing blob) or OperationCanceledException.
-    Task DownloadBlobAsync(FileEntry file, string destinationPath, IProgress<long>? progress, CancellationToken cancellationToken);
+    // Downloads blobs/<aa>/<sha256> into the folder's downloads cache (resuming a partial download), checks its size
+    // and hash and moves it to folder.PathFor(file.Name), replacing a file there. Retries transient failures. Reports
+    // bytes of this file on disk so far. Throws UpdateException (FileLocked, DiskFull, FeedUpdating for a missing
+    // blob, FileFailed once the retries are used up, ...) or OperationCanceledException. Callers must not download the
+    // same hash twice at once.
+    Task DownloadBlobAsync(FileEntry file, InstallFolder folder, IProgress<long>? progress, CancellationToken cancellationToken);
 
-    // Downloads and checks packages/<File> the same way.
+    // Downloads and checks packages/<File> the same way, to destinationPath (the partial file sits next to it).
     Task DownloadPackageAsync(PackageEntry package, string destinationPath, IProgress<long>? progress, CancellationToken cancellationToken);
 }
 

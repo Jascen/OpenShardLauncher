@@ -1,8 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <!-- No tests yet: don't fail on "zero tests ran" (exit code 8). Remove with the first test. -->
-    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --ignore-exit-code 8</TestingPlatformCommandLineArguments>
-  </PropertyGroup>
+  <ItemGroup>
+    <!-- The in-process feed server (Kestrel on loopback) -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\OpenShardLauncher.Infrastructure\OpenShardLauncher.Infrastructure.csproj" />
