@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Every message the player sees. Keys are in Presentation/StringKeys.cs, which says what each {n} placeholder is.
+     Translations go in Strings.<culture>.resx next to this file. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Main window -->
+  <data name="PlayButton" xml:space="preserve"><value>PLAY NOW</value></data>
+  <data name="DownloadButton" xml:space="preserve"><value>Download updates</value></data>
+  <data name="RetryButton" xml:space="preserve"><value>Retry</value></data>
+  <data name="ShowIgnoredButton" xml:space="preserve"><value>Show</value></data>
+  <data name="IgnoredSkipped" xml:space="preserve"><value>{0} file(s) or folder(s) skipped because they are ignored.</value></data>
+  <data name="SettingsTooltip" xml:space="preserve"><value>Settings</value></data>
+  <data name="MinimizeTooltip" xml:space="preserve"><value>Minimize</value></data>
+  <data name="CloseTooltip" xml:space="preserve"><value>Close</value></data>
+  <data name="CancelTooltip" xml:space="preserve"><value>Cancel update</value></data>
+  <data name="DataFolderFallbackNotice" xml:space="preserve"><value>This folder isn't writable, so settings are stored in your user profile and updates are disabled. Move the launcher to a writable folder.</value></data>
+
+  <!-- Status line -->
+  <data name="CheckingForUpdates" xml:space="preserve"><value>Checking for updates..</value></data>
+  <data name="StartingDownload" xml:space="preserve"><value>Starting the download..</value></data>
+  <data name="UpdatesReady" xml:space="preserve"><value>Updates are ready to download.</value></data>
+  <data name="RemovalsReady" xml:space="preserve"><value>Some files are no longer used and are ready to be removed.</value></data>
+  <data name="PackagesReady" xml:space="preserve"><value>The TazUO launcher is ready to download.</value></data>
+  <data name="Finished" xml:space="preserve"><value>Done, you're all up to date!</value></data>
+  <data name="FinishedWithFailures" xml:space="preserve"><value>Finished, but {0} file(s) couldn't be updated.</value></data>
+  <data name="CheckFailed" xml:space="preserve"><value>Couldn't check for updates.</value></data>
+  <data name="DownloadFailed" xml:space="preserve"><value>Couldn't finish downloading the updates.</value></data>
+  <data name="Cancelled" xml:space="preserve"><value>Update cancelled.</value></data>
+  <data name="NotVerified" xml:space="preserve"><value>Files not verified. Click Verify to check for updates.</value></data>
+  <data name="NoFolderChosen" xml:space="preserve"><value>Choose an install folder in Settings to continue.</value></data>
+
+  <!-- Progress -->
+  <data name="FetchingFileList" xml:space="preserve"><value>Requesting file list from server..</value></data>
+  <data name="ComparingFiles" xml:space="preserve"><value>Comparing your files to the server.. ({0}/{1})</value></data>
+  <data name="DownloadingFiles" xml:space="preserve"><value>Downloading files from the server.. ({0}/{1}) - ({2})</value></data>
+  <data name="DownloadingBytes" xml:space="preserve"><value>Downloading.. {0} of {1} - {2}, {3} left</value></data>
+  <data name="RemovingFiles" xml:space="preserve"><value>Removing files that are no longer used.. ({0}/{1})</value></data>
+  <data name="InstallingTazUO" xml:space="preserve"><value>Setting up the TazUO launcher..</value></data>
+  <data name="DownloadingTazUO" xml:space="preserve"><value>Downloading the TazUO launcher.. {0} of {1}</value></data>
+  <data name="UpdatingLauncher" xml:space="preserve"><value>Updating the launcher..</value></data>
+  <data name="DownloadingLauncher" xml:space="preserve"><value>Downloading the launcher update.. {0} of {1}</value></data>
+  <data name="CurrentFile" xml:space="preserve"><value>{0}</value></data>
+
+  <!-- Errors -->
+  <data name="UnknownError" xml:space="preserve"><value>An unknown error occurred, please try again later.</value></data>
+  <data name="ConnectionFailedError" xml:space="preserve"><value>Unable to connect to the server.</value></data>
+  <data name="BadDataError" xml:space="preserve"><value>Got bad data from the server, please try again later.</value></data>
+  <data name="InsecureServerError" xml:space="preserve"><value>The update address isn't secure (https), so nothing was downloaded. You can allow it in Settings.</value></data>
+  <data name="NothingPublishedError" xml:space="preserve"><value>The server has no files published yet.</value></data>
+  <data name="FeedUntrustedError" xml:space="preserve"><value>The server's file list couldn't be verified, so nothing was downloaded.</value></data>
+  <data name="FeedUpdatingError" xml:space="preserve"><value>The server is updating its files, please try again shortly.</value></data>
+  <data name="NoTrustedKeysError" xml:space="preserve"><value>This launcher has no trusted keys and unsigned feeds are disabled, so it can't update.</value></data>
+  <data name="InstallFolderNotWritableError" xml:space="preserve"><value>Can't write to the install folder, please choose another folder.</value></data>
+  <data name="InstallFolderNotAllowedError" xml:space="preserve"><value>The install folder can't be the launcher's own folder or contain it, please choose another folder.</value></data>
+  <data name="DiskFullError" xml:space="preserve"><value>The disk is full. Free up some space and click Retry.</value></data>
+  <data name="FileFailedError" xml:space="preserve"><value>Failed to download [{0}] after several attempts, skipping..</value></data>
+  <data name="FileLockedError" xml:space="preserve"><value>[{0}] is in use. Close the game and click Retry to finish updating.</value></data>
+  <data name="LaunchError" xml:space="preserve"><value>Unable to start the TazUO launcher.</value></data>
+
+  <!-- Package warnings -->
+  <data name="ManifestUnreachableWarning" xml:space="preserve"><value>Couldn't check for TazUO and launcher updates.</value></data>
+  <data name="ManifestUntrustedWarning" xml:space="preserve"><value>The server's launcher updates couldn't be verified, so they were not installed.</value></data>
+  <data name="ManifestUpdatingWarning" xml:space="preserve"><value>The server is updating its launcher packages, they will be checked again next time.</value></data>
+  <data name="PackagesNotConfiguredWarning" xml:space="preserve"><value>This launcher has no signing key set up, so it can't install the TazUO launcher.</value></data>
+  <data name="TazUOInstallFailedWarning" xml:space="preserve"><value>Couldn't set up the TazUO launcher, it will be retried next time.</value></data>
+  <data name="SelfUpdateFailedWarning" xml:space="preserve"><value>Couldn't update the launcher, it will be retried next time.</value></data>
+</root>

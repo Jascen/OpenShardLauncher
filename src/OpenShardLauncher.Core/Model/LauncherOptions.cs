@@ -35,9 +35,14 @@ public sealed record LauncherOptions
 
 public sealed record NavLink
 {
+    // A Url of "verify" re-checks every file instead of opening a page.
+    public const string VerifyTarget = "verify";
+
     public string Text { get; init; } = "";
 
     public string Url { get; init; } = "";
+
+    public bool IsVerify => string.Equals(Url, VerifyTarget, StringComparison.OrdinalIgnoreCase);
 }
 
 public sealed record TazUOOptions

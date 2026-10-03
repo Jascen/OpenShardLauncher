@@ -3,17 +3,37 @@
     <OutputType>WinExe</OutputType>
     <AssemblyName>$(LauncherExeName)</AssemblyName>
     <RootNamespace>OpenShardLauncher.Client</RootNamespace>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Build-time launcher options (title, update URL, trusted keys). Forks edit this file. -->
     <EmbeddedResource Include="Resources\launcher.json" LogicalName="launcher.json" />
+
+    <!-- A developer's own launcher.local.json (gitignored) is copied next to the exe. Only Debug builds read it. -->
+    <None Include="launcher.local.json" CopyToOutputDirectory="PreserveNewest"
+          Condition="'$(Configuration)' == 'Debug' And Exists('launcher.local.json')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Window and taskbar icon (ApplicationIcon only sets the exe icon, and only on Windows). Must be a real .ico. -->
+    <AvaloniaResource Include="Assets\icon.ico" />
+    <!-- Replaceable art, loaded by Views/LauncherArt.cs. Keep each image's size (see Themes/Controls.axaml); a missing
+         one is left blank. -->
+    <AvaloniaResource Include="Assets\*.png" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenShardLauncher.Client.Tests" />
   </ItemGroup>
 
   <ItemGroup>

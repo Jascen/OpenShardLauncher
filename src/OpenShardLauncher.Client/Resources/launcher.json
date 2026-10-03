@@ -4,7 +4,9 @@
   "UpdateUrl": "http://127.0.0.1:8080/",
   "TrustedPublicKeys": [],
   "AllowUnsignedFeed": false,
-  "Links": [],
+  "Links": [
+    { "Text": "Verify", "Url": "verify" }
+  ],
   "KeepLocalPatterns": [],
   "AppDataFolderName": "OpenShardLauncher",
   "DefaultInstallFolder": "Game",

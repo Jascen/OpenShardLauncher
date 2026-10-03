@@ -1,0 +1,31 @@
+<!-- The lines above the progress bars: a launcher notice, what the ignore list skipped, and the error line with Retry
+     and Cancel. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenShardLauncher.Client.ViewModels"
+             xmlns:views="using:OpenShardLauncher.Client.Views"
+             x:Class="OpenShardLauncher.Client.Views.Controls.StatusBar"
+             x:DataType="vm:MainWindowViewModel">
+  <StackPanel Width="520" Spacing="6">
+    <TextBlock Classes="overArt" Text="{Binding Status.Notice}" IsVisible="{Binding Status.HasNotice}"
+               Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" />
+
+    <!-- Files the player's ignore list kept from being downloaded -->
+    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding Status.HasIgnoredItems}">
+      <TextBlock Classes="overArt" Text="{Binding Status.IgnoredText}" Foreground="{DynamicResource MutedTextBrush}" />
+      <Button Classes="dialog secondary small" Content="{views:Text ShowIgnoredButton}" Command="{Binding ShowIgnoredCommand}" />
+    </StackPanel>
+
+    <Grid ColumnDefinitions="*,Auto,Auto">
+      <TextBlock Grid.Column="0" Classes="overArt" Text="{Binding Status.Error}" IsVisible="{Binding Status.HasError}"
+                 Foreground="{DynamicResource ErrorBrush}" TextTrimming="CharacterEllipsis"
+                 ToolTip.Tip="{Binding Status.Error}" />
+      <Button Grid.Column="1" Classes="dialog secondary small" Content="{views:Text RetryButton}" Command="{Binding RetryCommand}"
+              IsVisible="{Binding IsFailed}" Margin="8,0,0,0" />
+      <Button Grid.Column="2" Classes="chrome close" Width="22" Height="22" Command="{Binding CancelCommand}"
+              IsVisible="{Binding IsBusy}" ToolTip.Tip="{views:Text CancelTooltip}" AutomationProperties.Name="{views:Text CancelTooltip}">
+        <Path Data="M 0,0 L 8,8 M 8,0 L 0,8" Stroke="{DynamicResource ChromeGlyphBrush}" StrokeThickness="1.5" />
+      </Button>
+    </Grid>
+  </StackPanel>
+</UserControl>

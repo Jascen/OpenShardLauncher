@@ -1,0 +1,26 @@
+<!-- Assets/progress-frame.png (560x60) with two bars inside it: everything on top, the current file below. The bars sit
+     26 in from the sides and 6 from the top and bottom. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenShardLauncher.Client.ViewModels"
+             xmlns:views="using:OpenShardLauncher.Client.Views"
+             x:Class="OpenShardLauncher.Client.Views.Controls.ProgressPanel"
+             x:DataType="vm:ProgressViewModel">
+  <Grid Width="560" Height="60">
+    <Image Source="{x:Static views:LauncherArt.ProgressFrame}" Stretch="Fill">
+      <Image.Effect>
+        <DropShadowEffect Color="Black" BlurRadius="18" OffsetX="0" OffsetY="0" Opacity="0.5" />
+      </Image.Effect>
+    </Image>
+    <StackPanel Margin="26,6" Spacing="4">
+      <Grid>
+        <ProgressBar Classes="bar total" Value="{Binding Overall}" />
+        <TextBlock Classes="barText" Text="{Binding OverallText}" />
+      </Grid>
+      <Grid>
+        <ProgressBar Classes="bar file" Value="{Binding File}" />
+        <TextBlock Classes="barText" Text="{Binding FileText}" />
+      </Grid>
+    </StackPanel>
+  </Grid>
+</UserControl>
