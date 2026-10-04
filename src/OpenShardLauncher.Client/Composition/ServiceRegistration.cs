@@ -40,6 +40,7 @@ public static class ServiceRegistration
         services.AddSingleton(sp => sp.GetRequiredService<SettingsService>().ServerEndpoint);
         services.AddSingleton(sp => sp.GetRequiredService<SettingsService>().TransportPolicy);
         services.TryAddSingleton<IGameLauncher, TazUOLauncher>();
+        services.TryAddSingleton(new InstalledLauncher(LauncherVersion.CurrentVersion, launcherFolder.Path, SelfUpdater.ExeName));
         return services;
     }
 
@@ -49,12 +50,20 @@ public static class ServiceRegistration
         services.TryAddSingleton<IAppLifetime, AvaloniaAppLifetime>();
         services.TryAddSingleton<IFolderPicker, AvaloniaFolderPicker>();
         services.TryAddSingleton<IDialogService, DialogService>();
+
+        // Started with the host (App): checks for launcher updates at startup and every PackageCheckInterval.
+        services.AddHostedService<LauncherUpdatePoller>();
         return services;
     }
 
     public static IServiceCollection AddViewModels(this IServiceCollection services)
     {
         services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<LauncherUpdateBannerViewModel>(sp => new LauncherUpdateBannerViewModel(
+            sp.GetRequiredService<Core.Packages.LauncherSelfUpdateService>(),
+            sp.GetRequiredService<InstalledLauncher>(),
+            sp.GetRequiredService<LauncherDataFolder>()));
+        services.AddSingleton<SecurityNoticeViewModel>();
 
         // A fresh copy of the settings each time the dialog opens.
         services.AddTransient<SettingsViewModel>();

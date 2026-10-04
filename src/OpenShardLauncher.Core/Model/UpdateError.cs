@@ -9,6 +9,8 @@ public enum UpdateError
     InsecureServer, // Plain http to another machine without "Allow insecure downloads"
     NothingPublished, // files.json is 404: the server has no files published yet
     FeedUntrusted, // files.json has no valid signature from a trusted key (or is a rollback)
+    UnsignedFeedNotDefaultServer, // No signature: allowed only from the launcher's default server, not an overridden one
+    UnsignedFeedInsecure, // No signature: allowed only over https (or from this machine)
     FeedUpdating, // files.json and its signature still don't match after a refetch, or a blob is missing: mid-upload
     NoTrustedKeys, // The launcher was built with no keys and without AllowUnsignedFeed, so it can never update
     InstallFolderNotWritable,

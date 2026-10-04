@@ -68,17 +68,38 @@ public sealed class FeedVerifierTests : IDisposable
         Assert.Equal(FeedTrust.Unsigned, result.Trust);
     }
 
+    [Fact]
+    public async Task UnsignedAccepted_IsRaisedOnlyForAnAcceptedUnsignedDocument()
+    {
+        var verifier = Verifier(allowUnsigned: true);
+        var accepted = 0;
+        verifier.UnsignedAccepted += (_, _) => accepted++;
+
+        await VerifyAsync(verifier, DefaultServer, Signed(List(100), _key));
+        Assert.Equal(0, accepted);
+
+        await VerifyAsync(verifier, DefaultServer, Unsigned(List(200)));
+        Assert.Equal(1, accepted);
+
+        await VerifyAsync(verifier, DefaultServer, Unsigned(List(150))); // A rollback is refused
+        Assert.Equal(1, accepted);
+    }
+
+    // The refusal says why, so the window can explain it.
     [Theory]
-    [InlineData("https://updates.example.com/", "https://mirror.example.com/", true)] // overridden server
-    [InlineData("http://updates.example.com/", "http://updates.example.com/", true)] // plain http
-    [InlineData("https://updates.example.com/", "https://updates.example.com/", false)] // unsigned mode off
-    public async Task Missing_OtherwiseIsUntrusted(string updateUrl, string server, bool allowUnsigned)
+    [InlineData("https://updates.example.com/", "https://mirror.example.com/", true, UpdateError.UnsignedFeedNotDefaultServer)] // overridden server
+    [InlineData("http://updates.example.com/", "http://updates.example.com/", true, UpdateError.UnsignedFeedInsecure)] // plain http
+    [InlineData("https://updates.example.com/", "https://updates.example.com/", false, UpdateError.FeedUntrusted)] // unsigned mode off
+    public async Task Missing_OtherwiseIsRefused(string updateUrl, string server, bool allowUnsigned, UpdateError expected)
     {
         var verifier = Verifier(allowUnsigned, updateUrl: updateUrl);
+        var accepted = 0;
+        verifier.UnsignedAccepted += (_, _) => accepted++;
 
         var result = await VerifyAsync(verifier, new Uri(server), Unsigned(List(100)));
 
-        Assert.Equal(UpdateError.FeedUntrusted, result.Error);
+        Assert.Equal(expected, result.Error);
+        Assert.Equal(0, accepted);
     }
 
     [Fact]

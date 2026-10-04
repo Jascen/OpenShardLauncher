@@ -26,6 +26,23 @@
   <data name="CloseTooltip" xml:space="preserve"><value>Close</value></data>
   <data name="CancelTooltip" xml:space="preserve"><value>Cancel update</value></data>
   <data name="DataFolderFallbackNotice" xml:space="preserve"><value>This folder isn't writable, so settings are stored in your user profile and updates are disabled. Move the launcher to a writable folder.</value></data>
+  <data name="LauncherUpdatedNotice" xml:space="preserve"><value>Updated the launcher to version {0}.</value></data>
+  <data name="LauncherUpdateFailedNotice" xml:space="preserve"><value>Launcher update to version {0} failed: {1}</value></data>
+
+  <!-- Launcher update banner -->
+  <data name="LauncherUpdateAvailable" xml:space="preserve"><value>Launcher version {0} is available.</value></data>
+  <data name="LauncherUpdateAvailableUnsigned" xml:space="preserve"><value>Launcher version {0} is available (unsigned).</value></data>
+  <data name="UpdateLauncherButton" xml:space="preserve"><value>Update</value></data>
+  <data name="NotNowButton" xml:space="preserve"><value>Not now</value></data>
+  <data name="LauncherFolderNotWritable" xml:space="preserve"><value>The launcher can't update itself in this folder. Download the new version manually, or move the launcher to a folder you can write to.</value></data>
+  <data name="LauncherTranslocated" xml:space="preserve"><value>Move the launcher out of Downloads (e.g. to Applications or a game folder) to enable updates.</value></data>
+  <data name="CancelForLauncherUpdateTitle" xml:space="preserve"><value>Update the launcher</value></data>
+  <data name="CancelForLauncherUpdateMessage" xml:space="preserve"><value>A game update is running. Cancel it and update the launcher now? The game update continues where it left off next time.</value></data>
+  <data name="CancelAndUpdateButton" xml:space="preserve"><value>Cancel and update</value></data>
+
+  <!-- Unsigned feed notice -->
+  <data name="UnsignedFeedAllowedNotice" xml:space="preserve"><value>Unsigned feed allowed: game files and launcher/TazUO updates from this server aren't verified.</value></data>
+  <data name="UnsignedFeedInUseNotice" xml:space="preserve"><value>Unsigned feed: the files from this server are not signed, so where they came from isn't verified.</value></data>
 
   <!-- Dialogs -->
   <data name="OkButton" xml:space="preserve"><value>OK</value></data>
@@ -89,8 +106,10 @@
   <data name="InsecureServerError" xml:space="preserve"><value>The update address isn't secure (https), so nothing was downloaded. You can allow it in Settings.</value></data>
   <data name="NothingPublishedError" xml:space="preserve"><value>The server has no files published yet.</value></data>
   <data name="FeedUntrustedError" xml:space="preserve"><value>The server's file list couldn't be verified, so nothing was downloaded.</value></data>
-  <data name="FeedUpdatingError" xml:space="preserve"><value>The server is updating its files, please try again shortly.</value></data>
-  <data name="NoTrustedKeysError" xml:space="preserve"><value>This launcher has no trusted keys and unsigned feeds are disabled, so it can't update.</value></data>
+  <data name="FeedUpdatingError" xml:space="preserve"><value>The server is updating. If this keeps happening, it may not be signed for this launcher.</value></data>
+  <data name="UnsignedFeedNotDefaultServerError" xml:space="preserve"><value>This server's files aren't signed. Unsigned files are only accepted from the launcher's own server, so nothing was downloaded.</value></data>
+  <data name="UnsignedFeedInsecureError" xml:space="preserve"><value>This server's files aren't signed and it doesn't use https, so nothing was downloaded.</value></data>
+  <data name="NoTrustedKeysError" xml:space="preserve"><value>This launcher has no trusted keys and unsigned feeds are disabled, so it can't update. Operator: add a key from "publisher keygen" or set AllowUnsignedFeed.</value></data>
   <data name="InstallFolderNotWritableError" xml:space="preserve"><value>Can't write to the install folder, please choose another folder.</value></data>
   <data name="InstallFolderNotAllowedError" xml:space="preserve"><value>The install folder can't be the launcher's own folder or contain it, please choose another folder.</value></data>
   <data name="DiskFullError" xml:space="preserve"><value>The disk is full. Free up some space and click Retry.</value></data>
@@ -105,4 +124,11 @@
   <data name="PackagesNotConfiguredWarning" xml:space="preserve"><value>This launcher has no signing key set up, so it can't install the TazUO launcher.</value></data>
   <data name="TazUOInstallFailedWarning" xml:space="preserve"><value>Couldn't set up the TazUO launcher, it will be retried next time.</value></data>
   <data name="SelfUpdateFailedWarning" xml:space="preserve"><value>Couldn't update the launcher, it will be retried next time.</value></data>
+
+  <!-- Launcher update errors -->
+  <data name="SelfUpdateNotOfferedError" xml:space="preserve"><value>The launcher update is no longer available.</value></data>
+  <data name="SelfUpdateDownloadFailedError" xml:space="preserve"><value>Couldn't download the launcher update, please try again later.</value></data>
+  <data name="SelfUpdateVerificationFailedError" xml:space="preserve"><value>The launcher update couldn't be verified, so it wasn't installed.</value></data>
+  <data name="SelfUpdatePackageInvalidError" xml:space="preserve"><value>The launcher update is damaged or unsafe, so it wasn't installed.</value></data>
+  <data name="SelfUpdateHandOffFailedError" xml:space="preserve"><value>Couldn't start the new launcher version, please try again later.</value></data>
 </root>

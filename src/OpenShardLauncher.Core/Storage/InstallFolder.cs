@@ -25,6 +25,9 @@ public sealed class InstallFolder
 
     public string DownloadsFolder => Path.Combine(CacheFolder, "downloads");
 
+    // Package zips (TazUO) while they download, and what they unpack to before it is moved into place.
+    public string PackagesFolder => Path.Combine(CacheFolder, "packages");
+
     public string IgnoreFilePath => Path.Combine(Root, IgnoreFileName);
 
     // The install folder for these settings: the player's choice, or the default subfolder next to the launcher.

@@ -26,7 +26,11 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         _server = await TestFeedServer.StartAsync();
-        _launcher = new TestLauncher(_server.Url, [_key.PublicKey], configure: o => o with { KeepLocalPatterns = ["*.cfg"] });
+        _launcher = new TestLauncher(_server.Url, [_key.PublicKey], configure: o => o with
+        {
+            KeepLocalPatterns = ["*.cfg"],
+            TazUO = new TazUOOptions { Profiles = [new TazUOProfile { Id = "shard", Name = "Shard", ClientVersion = "7.0.15.1" }] },
+        });
         _session = _launcher.OpenSession();
     }
 
@@ -270,6 +274,60 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
 
         Assert.Equal(UpdateResult.Finished, outcome.Result);
         Assert.Empty(outcome.PackageWarnings);
+    }
+
+    [Fact]
+    public async Task TazUO_IsInstalledByTheDownload_WithItsVersionAndProfiles()
+    {
+        Publish(("art.mul", "art"));
+        var package = _server.AddPackage(PackageRole.TazUO, "2.0.0", TestPackages.Zip(("TazUOLauncher.exe", "tazuo"), ("lib/x.dll", "x")));
+        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [package]), _key);
+        WriteLocal("TazUO/Profiles/mine.json", "kept"); // A player's own profile isn't in the zip
+        var progress = new Recorder<UpdateProgress>();
+
+        var outcome = await _launcher.Workflow.DownloadAsync(_session, progress, cancellationToken: TestToken);
+
+        Assert.Equal(UpdateResult.Finished, outcome.Result);
+        Assert.Empty(outcome.PackageWarnings);
+        Assert.Equal("tazuo", ReadLocal("TazUO/TazUOLauncher.exe"));
+        Assert.Equal("x", ReadLocal("TazUO/lib/x.dll"));
+        Assert.Equal("kept", ReadLocal("TazUO/Profiles/mine.json"));
+        Assert.Equal("2.0.0", _launcher.FeedState.GetInstalledVersion(PackageRole.TazUO));
+        Assert.Contains("\"ultimaonlinedirectory\"", ReadLocal("TazUO/Profiles/Settings/shard.json"));
+        Assert.Contains("\"Shard\"", ReadLocal("TazUO/Profiles/shard.json"));
+        Assert.Contains(progress.Values, p => p.Phase == UpdatePhase.InstallingTazUO && p.BytesTotal == package.Size);
+        Assert.False(Directory.Exists(_launcher.InstallFolder.PackagesFolder) && Directory.EnumerateFileSystemEntries(_launcher.InstallFolder.PackagesFolder).Any());
+    }
+
+    [Fact]
+    public async Task TazUO_UnsafeZip_IsRefused_WithAWarning_AndGameFilesStillUpdate()
+    {
+        Publish(("art.mul", "art"));
+        var package = _server.AddPackage(PackageRole.TazUO, "2.0.0", TestPackages.Zip(("TazUOLauncher.exe", "tazuo"), ("../../escaped.txt", "x")));
+        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [package]), _key);
+
+        var outcome = await _launcher.Workflow.DownloadAsync(_session, cancellationToken: TestToken);
+
+        Assert.Equal(UpdateResult.Finished, outcome.Result);
+        Assert.Equal([PackageWarning.TazUOInstallFailed], outcome.PackageWarnings);
+        Assert.Equal("art", ReadLocal("art.mul"));
+        Assert.False(File.Exists(LocalPath("TazUO/TazUOLauncher.exe")));
+        Assert.Null(_launcher.FeedState.GetInstalledVersion(PackageRole.TazUO));
+    }
+
+    // Over plain http to another machine is covered by FeedVerifierTests: the test server only listens on loopback.
+    [Fact]
+    public async Task UnsignedFeed_FromAnOverriddenServer_IsRefusedWithTheReason()
+    {
+        using var launcher = new TestLauncher(new Uri("http://127.0.0.1:1/"), [], allowUnsignedFeed: true);
+        launcher.Endpoint.SetOverride(_server.Url.AbsoluteUri);
+        _server.PublishFileList(new FileList(++_version, [], [])); // No signature
+        using var session = launcher.OpenSession();
+
+        var outcome = await launcher.Workflow.CheckAsync(session, cancellationToken: TestToken);
+
+        Assert.Equal(UpdateResult.Failed, outcome.Result);
+        Assert.Equal(UpdateError.UnsignedFeedNotDefaultServer, outcome.Error);
     }
 
     [Fact]

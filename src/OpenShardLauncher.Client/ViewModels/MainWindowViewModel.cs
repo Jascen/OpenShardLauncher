@@ -6,14 +6,16 @@ using OpenShardLauncher.Client.Services;
 using OpenShardLauncher.Client.ViewModels.Dialogs;
 using OpenShardLauncher.Core.Abstractions;
 using OpenShardLauncher.Core.Model;
+using OpenShardLauncher.Core.Packages;
 using OpenShardLauncher.Core.Storage;
 using OpenShardLauncher.Core.Workflow;
 using OpenShardLauncher.Infrastructure.Platform;
 
 namespace OpenShardLauncher.Client.ViewModels;
 
-// The launcher window: composes the progress, status and nav bar view models and owns the commands. What the window
-// shows and enables follows from State (LauncherStateMachine) and whether the game is installed.
+// The launcher window: composes the progress, status, nav bar, launcher-update banner and security notice view models
+// and owns the commands. What the window shows and enables follows from State (LauncherStateMachine) and whether the
+// game is installed.
 public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly UpdateWorkflow _workflow;
@@ -23,8 +25,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IGameLauncher _game;
     private readonly IDialogService _dialogs;
     private readonly Func<SettingsViewModel> _settingsDialog;
+    private readonly LauncherSelfUpdateService _selfUpdate;
+    private readonly IAppLifetime _lifetime;
     private readonly ILogger<MainWindowViewModel> _logger;
     private InstallSession? _session;
+
+    // Built with no trusted keys and without AllowUnsignedFeed: nothing could ever be verified, so no check runs.
+    private readonly bool _noKeys;
 
     // Whether the last check was one the player asked for (Verify, Retry) rather than the automatic launch check.
     private bool _checkAskedFor;
@@ -39,6 +46,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         IUrlLauncher urls,
         IDialogService dialogs,
         Func<SettingsViewModel> settingsDialog,
+        LauncherSelfUpdateService selfUpdate,
+        InstalledLauncher launcher,
+        LauncherUpdateBannerViewModel launcherUpdate,
+        SecurityNoticeViewModel securityNotice,
+        IAppLifetime lifetime,
         ILogger<MainWindowViewModel> logger)
     {
         _workflow = workflow;
@@ -48,9 +60,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _game = game;
         _dialogs = dialogs;
         _settingsDialog = settingsDialog;
+        _selfUpdate = selfUpdate;
+        _lifetime = lifetime;
         _logger = logger;
+        _noKeys = options.TrustedPublicKeys.Count == 0 && !options.AllowUnsignedFeed;
         NavBar = new NavBarViewModel(options.Links, urls, VerifyCommand);
-        Status.Notice = dataFolder.IsPortable ? null : UiText.Get(StringKeys.DataFolderFallbackNotice);
+        LauncherUpdate = launcherUpdate;
+        SecurityNotice = securityNotice;
+        LauncherUpdate.PropertyChanged += OnLauncherUpdateChanged;
+        UpdateLauncherCommand.PropertyChanged += OnLauncherUpdateChanged; // IsRunning gates both banner buttons
+        Status.Notice = StartupNotice(dataFolder, launcher);
         _settings.ServerEndpoint.Changed += OnServerChanged;
     }
 
@@ -64,12 +83,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public NavBarViewModel NavBar { get; }
 
+    public LauncherUpdateBannerViewModel LauncherUpdate { get; }
+
+    public SecurityNoticeViewModel SecurityNotice { get; }
+
     // The overlay in the window shows Dialogs.Current.
     public IDialogService Dialogs => _dialogs;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsBusy), nameof(IsFailed), nameof(DownloadsReady), nameof(CanPlay), nameof(MainButtonText), nameof(IsMainButtonVisible))]
     [NotifyCanExecuteChangedFor(nameof(MainActionCommand), nameof(VerifyCommand), nameof(RetryCommand), nameof(CancelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(UpdateLauncherCommand), nameof(DismissLauncherUpdateCommand))]
     public partial LauncherState State { get; private set; }
 
     [ObservableProperty]
@@ -91,12 +115,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public bool IsMainButtonVisible => DownloadsReady || _options.TazUO.Enabled;
 
-    // Every command that runs a check or download, for Cancel.
-    private IEnumerable<IAsyncRelayCommand> RunCommands => [StartCommand, RestartSessionCommand, MainActionCommand, VerifyCommand, RetryCommand];
+    // Every command that runs a check, a download or a launcher update, for Cancel.
+    private IEnumerable<IAsyncRelayCommand> RunCommands =>
+        [StartCommand, RestartSessionCommand, MainActionCommand, VerifyCommand, RetryCommand, UpdateLauncherCommand];
 
     public void Dispose()
     {
         _settings.ServerEndpoint.Changed -= OnServerChanged;
+        LauncherUpdate.PropertyChanged -= OnLauncherUpdateChanged;
+        UpdateLauncherCommand.PropertyChanged -= OnLauncherUpdateChanged;
         _session?.Dispose();
     }
 
@@ -168,6 +195,69 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private Task OpenSettingsAsync() => ShowSettingsAsync(folderError: null);
 
+    // Downloads the new launcher and hands off to it; this launcher then exits. A running check or download is
+    // cancelled first, once the player agrees.
+    [RelayCommand(CanExecute = nameof(CanUpdateLauncher))]
+    private async Task UpdateLauncherAsync(CancellationToken cancellationToken)
+    {
+        if (IsBusy)
+        {
+            var confirm = new ConfirmViewModel(
+                UiText.Get(StringKeys.CancelForLauncherUpdateTitle),
+                UiText.Get(StringKeys.CancelForLauncherUpdateMessage),
+                UiText.Get(StringKeys.CancelAndUpdateButton),
+                UiText.Get(StringKeys.CancelButton));
+            if (!await _dialogs.ShowAsync(confirm))
+            {
+                return;
+            }
+
+            await StopRunsAsync();
+        }
+
+        if (cancellationToken.IsCancellationRequested || !LauncherUpdate.CanUpdate)
+        {
+            return;
+        }
+
+        var before = (State, Progress: Progress.Save());
+        State = LauncherState.Working;
+        Status.ShowError(null);
+        Progress.Reset(new LocalizedText(StringKeys.UpdatingLauncher));
+
+        SelfUpdateResult result;
+        try
+        {
+            result = await _selfUpdate.UpdateAsync(new Progress<UpdateProgress>(Progress.Report), cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            result = SelfUpdateResult.Failure(SelfUpdateError.NotOffered);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "The launcher update failed unexpectedly");
+            result = SelfUpdateResult.Failure(SelfUpdateError.HandOffFailed);
+        }
+
+        if (result.HandedOff)
+        {
+            _lifetime.Shutdown();
+            return;
+        }
+
+        State = before.State;
+        Progress.Restore(before.Progress);
+        if (!cancellationToken.IsCancellationRequested)
+        {
+            Status.ShowError(ErrorMessageMapper.Map(result.Error!.Value));
+        }
+    }
+
+    // "Not now": the banner stays hidden until the launcher restarts.
+    [RelayCommand(CanExecute = nameof(CanDismissLauncherUpdate))]
+    private void DismissLauncherUpdate() => _selfUpdate.Dismiss();
+
     // Lists what the ignore list kept from being downloaded.
     [RelayCommand(CanExecute = nameof(HasIgnoredItems))]
     private async Task ShowIgnoredAsync()
@@ -179,7 +269,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private bool CanRunMainAction() => DownloadsReady || CanPlay;
 
-    private bool CanVerify() => !IsBusy && _session is not null;
+    private bool CanVerify() => !IsBusy && _session is not null && !_noKeys;
+
+    private bool CanUpdateLauncher() => LauncherUpdate.CanUpdate && !UpdateLauncherCommand.IsRunning;
+
+    private bool CanDismissLauncherUpdate() => LauncherUpdate.IsVisible && !UpdateLauncherCommand.IsRunning;
 
     private bool HasIgnoredItems() => Status.HasIgnoredItems;
 
@@ -189,6 +283,43 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             command.Cancel();
         }
+    }
+
+    // Cancels the check or download that is running and waits until it has wound down.
+    private async Task StopRunsAsync()
+    {
+        var running = RunCommands.Where(c => c.IsRunning && c != UpdateLauncherCommand).ToList();
+        CancelRuns(except: UpdateLauncherCommand);
+        foreach (var command in running)
+        {
+            try
+            {
+#pragma warning disable VSTHRD003 // Waiting for our own command to finish on this thread
+                await (command.ExecutionTask ?? Task.CompletedTask);
+#pragma warning restore VSTHRD003
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+    }
+
+    private void OnLauncherUpdateChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        UpdateLauncherCommand.NotifyCanExecuteChanged();
+        DismissLauncherUpdateCommand.NotifyCanExecuteChanged();
+    }
+
+    // How the last self-update went (once, right after it), else the data-folder fallback notice.
+    private string? StartupNotice(LauncherDataFolder dataFolder, InstalledLauncher launcher)
+    {
+        var report = UpdateResultMarker.Take(dataFolder.UpdateResultFile, launcher.Version?.ToString() ?? "", _logger);
+        return report switch
+        {
+            { Succeeded: true } => UiText.Get(new LocalizedText(StringKeys.LauncherUpdatedNotice, report.ExpectedVersion)),
+            not null => UiText.Get(new LocalizedText(StringKeys.LauncherUpdateFailedNotice, report.ExpectedVersion, report.Error ?? "")),
+            null => dataFolder.IsPortable ? null : UiText.Get(StringKeys.DataFolderFallbackNotice),
+        };
     }
 
     // Saving a new install folder or server restarts the session. A new server already did, through
@@ -251,6 +382,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private async Task OpenFolderAsync(string installPath, CancellationToken cancellationToken)
     {
         OpenSession(installPath);
+        if (_noKeys)
+        {
+            // The game can still be played; it just can't be updated.
+            _logger.LogError("The launcher has no trusted keys and unsigned feeds are disabled; no update checks run");
+            Status.ShowError(new LocalizedText(StringKeys.NoTrustedKeysError));
+            Progress.Reset(new LocalizedText(StringKeys.CheckFailed));
+            return;
+        }
+
         if (_settings.Current.VerifyOnLaunch)
         {
             await CheckAsync(askedFor: false, cancellationToken);
@@ -271,7 +411,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Func<InstallSession, IProgress<UpdateProgress>, IProgress<FileProgress>, CancellationToken, Task<UpdateOutcome>> run,
         CancellationToken cancellationToken)
     {
-        if (_session is not { } session || IsBusy)
+        if (_session is not { } session || IsBusy || _noKeys)
         {
             return;
         }

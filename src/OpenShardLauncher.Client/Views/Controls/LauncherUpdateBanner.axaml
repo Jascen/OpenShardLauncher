@@ -1,0 +1,24 @@
+<!-- "Launcher version X is available" with Update and Not now, or why the launcher can't update itself here. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenShardLauncher.Client.ViewModels"
+             xmlns:views="using:OpenShardLauncher.Client.Views"
+             x:Class="OpenShardLauncher.Client.Views.Controls.LauncherUpdateBanner"
+             x:DataType="vm:MainWindowViewModel"
+             IsVisible="{Binding LauncherUpdate.IsVisible}">
+  <Border Background="{DynamicResource DialogBackgroundBrush}" BorderBrush="{DynamicResource ChromeBorderBrush}"
+          BorderThickness="1" CornerRadius="4" Padding="12,8" MaxWidth="620" HorizontalAlignment="Center">
+    <StackPanel Spacing="6">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="{Binding LauncherUpdate.Text}" Foreground="{DynamicResource DialogTextBrush}"
+                   VerticalAlignment="Center" TextWrapping="Wrap" />
+        <Button Grid.Column="1" Classes="dialog small" Margin="12,0,0,0" Content="{views:Text UpdateLauncherButton}"
+                Command="{Binding UpdateLauncherCommand}" IsVisible="{Binding LauncherUpdate.CanUpdate}" />
+        <Button Grid.Column="2" Classes="dialog secondary small" Margin="8,0,0,0" Content="{views:Text NotNowButton}"
+                Command="{Binding DismissLauncherUpdateCommand}" />
+      </Grid>
+      <TextBlock Text="{Binding LauncherUpdate.Warning}" IsVisible="{Binding LauncherUpdate.HasWarning}"
+                 Foreground="{DynamicResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap" />
+    </StackPanel>
+  </Border>
+</UserControl>

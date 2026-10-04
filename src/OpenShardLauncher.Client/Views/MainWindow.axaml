@@ -56,6 +56,12 @@
         </StackPanel>
       </Grid>
 
+      <!-- Under the nav bar: the unsigned-feed strip (can't be dismissed), then a launcher update when one is offered -->
+      <StackPanel Grid.Row="1" VerticalAlignment="Top" Spacing="8" ZIndex="1">
+        <controls:SecurityNotice DataContext="{Binding SecurityNotice}" />
+        <controls:LauncherUpdateBanner Margin="16,0" />
+      </StackPanel>
+
       <!-- Title and play button -->
       <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
         <TextBlock Text="{Binding Title}" FontFamily="{DynamicResource DisplayFont}"

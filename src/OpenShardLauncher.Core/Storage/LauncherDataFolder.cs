@@ -9,6 +9,7 @@ public sealed class LauncherDataFolder
 {
     public const string PortableFolderName = ".openshardlauncher";
     public const string SettingsFileName = "settings.json";
+    public const string UpdateResultFileName = "update-result.json";
 
     private LauncherDataFolder(string path, bool isPortable)
     {
@@ -24,7 +25,7 @@ public sealed class LauncherDataFolder
 
     public string FeedStateFile => System.IO.Path.Combine(Path, "feed-state.json");
 
-    public string UpdateResultFile => System.IO.Path.Combine(Path, "update-result.json");
+    public string UpdateResultFile => System.IO.Path.Combine(Path, UpdateResultFileName);
 
     public string LogsFolder => System.IO.Path.Combine(Path, "logs");
 

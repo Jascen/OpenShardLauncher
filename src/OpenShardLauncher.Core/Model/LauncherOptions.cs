@@ -53,4 +53,23 @@ public sealed record TazUOOptions
     public string InstallFolder { get; init; } = "TazUO";
 
     public string ExecutableName { get; init; } = "TazUOLauncher";
+
+    // Created in the TazUO launcher once it is installed, unless a profile with that Id already exists (players' own
+    // changes in the TazUO launcher are kept).
+    public IReadOnlyList<TazUOProfile> Profiles { get; init; } = [];
+}
+
+// A TazUO launcher profile for this shard. Id is also the file name TazUO stores it under, so keep it stable once
+// released.
+public sealed record TazUOProfile
+{
+    public string Id { get; init; } = "";
+
+    public string Name { get; init; } = "";
+
+    public string Ip { get; init; } = "127.0.0.1";
+
+    public int Port { get; init; } = 2593;
+
+    public string ClientVersion { get; init; } = "";
 }
