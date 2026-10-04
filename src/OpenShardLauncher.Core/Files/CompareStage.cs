@@ -36,6 +36,13 @@ public sealed class CompareStage(WorkflowOptions options, TimeProvider time, ILo
         {
             await Parallel.ForEachAsync(files, parallel, async (file, token) =>
             {
+                // ForEachAsync can keep handing out items after the stop when comparisons finish synchronously (missing
+                // files), so a check could compare the whole list. Items started after the stop are skipped here.
+                if (stop.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 if (!await IsUpToDateAsync(comparer, file, token).ConfigureAwait(false))
                 {
                     differences.Add(file);
@@ -56,6 +63,9 @@ public sealed class CompareStage(WorkflowOptions options, TimeProvider time, ILo
         {
             // Stopped at the first difference.
         }
+
+        // The skip above can let the loop end normally after the caller cancelled; that is still a cancel.
+        cancellationToken.ThrowIfCancellationRequested();
 
         progress?.Report(new UpdateProgress(UpdatePhase.Comparing, compared, files.Count));
         var sorted = differences.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList();
