@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
       DOTNET_NOLOGO: true
@@ -37,3 +37,13 @@ jobs:
 
       - name: Test
         run: dotnet test --configuration Release --no-build
+
+      # Catches a broken macOS launcher before release day: release.yml builds osx on macOS so the SDK ad-hoc signs it
+      # (Apple Silicon refuses unsigned code). Published into a temp folder and thrown away; nothing is uploaded.
+      - name: Check the macOS launcher publish
+        if: runner.os == 'macOS'
+        run: |
+          out="$RUNNER_TEMP/launcher"
+          dotnet publish src/OpenShardLauncher.Client --configuration Release --runtime osx-arm64 --self-contained -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=false -p:DebugType=embedded --output "$out"
+          exe="$(dotnet msbuild src/OpenShardLauncher.Client -getProperty:AssemblyName)"
+          codesign --verify --strict --verbose=2 "$out/$exe"
