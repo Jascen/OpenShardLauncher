@@ -110,16 +110,18 @@ public sealed class FeedStateStore
     }
 }
 
+// Properties are settable, not init: the JSON source generator assigns every init property, so one missing from the
+// file would get false/0/null instead of the default below. With setters it assigns only what the file contains.
 internal sealed class FeedState
 {
-    public Dictionary<string, long> FileListVersions { get; init; } = new(StringComparer.Ordinal);
+    public Dictionary<string, long> FileListVersions { get; set; } = new(StringComparer.Ordinal);
 
-    public Dictionary<string, PackageState> Packages { get; init; } = new(StringComparer.Ordinal);
+    public Dictionary<string, PackageState> Packages { get; set; } = new(StringComparer.Ordinal);
 }
 
 internal sealed record PackageState
 {
-    public string? InstalledVersion { get; init; }
+    public string? InstalledVersion { get; set; }
 
-    public string? HighestManifestVersion { get; init; }
+    public string? HighestManifestVersion { get; set; }
 }
