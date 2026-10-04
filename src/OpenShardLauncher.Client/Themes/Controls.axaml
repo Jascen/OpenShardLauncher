@@ -220,6 +220,55 @@
     </Setter>
   </Style>
 
+  <!-- Dialogs: a gold-framed panel over the dimmed launcher -->
+  <Style Selector="Border.dialogFrame">
+    <Setter Property="Width" Value="460" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource DialogBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource GoldBrush}" />
+    <Setter Property="BorderThickness" Value="3" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="24,20" />
+    <Setter Property="BoxShadow" Value="0 8 32 0 #C0000000" />
+  </Style>
+  <Style Selector="TextBlock.dialogTitle">
+    <Setter Property="FontFamily" Value="{DynamicResource DisplayFont}" />
+    <Setter Property="FontSize" Value="22" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{DynamicResource DialogTitleBrush}" />
+  </Style>
+  <Style Selector="TextBlock.dialogText">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="LineHeight" Value="20" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Foreground" Value="{DynamicResource DialogTextBrush}" />
+  </Style>
+  <Style Selector="TextBlock.dialogLabel">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource DialogTextBrush}" />
+  </Style>
+  <Style Selector="TextBlock.dialogHint">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Foreground" Value="{DynamicResource DialogMutedTextBrush}" />
+  </Style>
+  <Style Selector="TextBlock.dialogError">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+  </Style>
+  <Style Selector="Border.dialogFrame CheckBox">
+    <Setter Property="FontSize" Value="14" />
+  </Style>
+  <Style Selector="Border.dialogFrame TextBox">
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Button.dialog:disabled">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+
   <!-- Status and notice lines over the art -->
   <Style Selector="TextBlock.overArt">
     <Setter Property="FontSize" Value="13" />

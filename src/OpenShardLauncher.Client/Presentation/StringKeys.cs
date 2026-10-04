@@ -15,6 +15,35 @@ public static class StringKeys
     public const string CancelTooltip = nameof(CancelTooltip);
     public const string DataFolderFallbackNotice = nameof(DataFolderFallbackNotice);
 
+    // Dialogs
+    public const string OkButton = nameof(OkButton);
+    public const string CancelButton = nameof(CancelButton);
+    public const string SaveButton = nameof(SaveButton);
+    public const string UnverifiedTitle = nameof(UnverifiedTitle);
+    public const string UnverifiedMessage = nameof(UnverifiedMessage);
+    public const string PlayAnywayButton = nameof(PlayAnywayButton);
+    public const string IgnoredTitle = nameof(IgnoredTitle);
+    public const string IgnoredListIntro = nameof(IgnoredListIntro); // Followed by the ignored names, one per line
+
+    // Settings
+    public const string SettingsTitle = nameof(SettingsTitle);
+    public const string InstallFolderLabel = nameof(InstallFolderLabel);
+    public const string ChangeFolderButton = nameof(ChangeFolderButton);
+    public const string ChooseFolderTitle = nameof(ChooseFolderTitle); // {0} = launcher title
+    public const string IgnoreListLabel = nameof(IgnoreListLabel);
+    public const string IgnoreListHelp = nameof(IgnoreListHelp);
+    public const string IgnoreListPlaceholder = nameof(IgnoreListPlaceholder);
+    public const string VerifyOnLaunchOption = nameof(VerifyOnLaunchOption);
+    public const string WarnIfNotVerifiedOption = nameof(WarnIfNotVerifiedOption);
+    public const string DownloadsLabel = nameof(DownloadsLabel);
+    public const string AllowInsecureOption = nameof(AllowInsecureOption);
+    public const string AllowInsecureTooltip = nameof(AllowInsecureTooltip);
+    public const string ServerAddressLabel = nameof(ServerAddressLabel);
+    public const string ResetServerButton = nameof(ResetServerButton);
+    public const string ServerMirrorNote = nameof(ServerMirrorNote); // Shown when the server isn't the default
+    public const string ServerUrlInvalidError = nameof(ServerUrlInvalidError);
+    public const string ServerUrlInsecureError = nameof(ServerUrlInsecureError);
+
     // Status line
     public const string CheckingForUpdates = nameof(CheckingForUpdates);
     public const string StartingDownload = nameof(StartingDownload);

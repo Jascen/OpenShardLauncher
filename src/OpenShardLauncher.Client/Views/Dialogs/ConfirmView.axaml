@@ -1,0 +1,19 @@
+<!-- A yes/no question. Enter confirms, Escape cancels. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenShardLauncher.Client.ViewModels.Dialogs"
+             x:Class="OpenShardLauncher.Client.Views.Dialogs.ConfirmView"
+             x:DataType="vm:ConfirmViewModel">
+  <Border Classes="dialogFrame">
+    <StackPanel Spacing="16">
+      <TextBlock Classes="dialogTitle" Text="{Binding Title}" />
+      <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+        <TextBlock Classes="dialogText" Text="{Binding Message}" />
+      </ScrollViewer>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,6,0,0">
+        <Button Classes="dialog secondary" Content="{Binding CancelText}" Command="{Binding CancelCommand}" IsCancel="True" />
+        <Button Classes="dialog" Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}" IsDefault="True" />
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</UserControl>

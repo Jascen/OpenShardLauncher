@@ -3,6 +3,7 @@
         xmlns:vm="using:OpenShardLauncher.Client.ViewModels"
         xmlns:views="using:OpenShardLauncher.Client.Views"
         xmlns:controls="using:OpenShardLauncher.Client.Views.Controls"
+        xmlns:dialogs="using:OpenShardLauncher.Client.Views.Dialogs"
         x:Class="OpenShardLauncher.Client.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Width="900" Height="675" CanResize="False"
@@ -35,7 +36,8 @@
     </Border>
     <Border IsHitTestVisible="False" BorderBrush="{DynamicResource WindowBorderBrush}" BorderThickness="2" />
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <!-- Disabled while a dialog is open, so nothing behind the overlay can be reached with the keyboard -->
+    <Grid RowDefinitions="Auto,*,Auto" IsEnabled="{Binding !Dialogs.IsOpen}">
       <!-- Top bar: links centered, window buttons on the right -->
       <Grid Grid.Row="0" Height="60">
         <controls:NavBar DataContext="{Binding NavBar}" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -80,5 +82,8 @@
         </StackPanel>
       </Grid>
     </Grid>
+
+    <!-- Dialogs, over everything (Settings, confirmations, messages) -->
+    <dialogs:DialogHost DataContext="{Binding Dialogs}" />
   </Grid>
 </Window>

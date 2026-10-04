@@ -1,0 +1,17 @@
+<!-- Something to read, with an OK button. Enter or Escape closes it. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenShardLauncher.Client.ViewModels.Dialogs"
+             x:Class="OpenShardLauncher.Client.Views.Dialogs.MessageView"
+             x:DataType="vm:MessageViewModel">
+  <Border Classes="dialogFrame">
+    <StackPanel Spacing="16">
+      <TextBlock Classes="dialogTitle" Text="{Binding Title}" />
+      <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+        <SelectableTextBlock Classes="dialogText" Text="{Binding Message}" />
+      </ScrollViewer>
+      <Button Classes="dialog" Content="{Binding OkText}" Command="{Binding OkCommand}" HorizontalAlignment="Right"
+              IsDefault="True" IsCancel="True" Margin="0,6,0,0" />
+    </StackPanel>
+  </Border>
+</UserControl>
