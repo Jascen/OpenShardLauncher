@@ -1,0 +1,156 @@
+name: Release
+
+# Builds unsigned launcher, server and Publisher binaries from a v* tag (or a manual run) and attaches them to a draft
+# GitHub release. Nothing here signs a feed: the private key never exists in CI. The maintainer puts the launcher zips
+# into the packages folder and runs `publisher publish --key ...` on their own machine (see README.md, "Releasing").
+# No OS code signing either (Authenticode/notarization); osx builds are ad-hoc signed by the SDK on the macOS runner.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build, e.g. 1.2.0 (numeric, 2-4 parts). A manual run uploads workflow artifacts only; no release is created.'
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # Plain single-file, self-contained publish: no compression, packers or obfuscators (they look like malware to
+  # scanners). Symbols are embedded so log stack traces keep line numbers.
+  PUBLISH_FLAGS: >-
+    --configuration Release --self-contained
+    -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=false
+    -p:DebugType=embedded -p:ContinuousIntegrationBuild=true
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      # Self-update only compares plain numeric versions: a launcher whose version is e.g. 1.2.0-beta is never offered
+      # an update, so such a tag is refused here.
+      - id: version
+        env:
+          INPUT: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+        run: |
+          version="${INPUT#v}"
+          if ! [[ "$version" =~ ^[0-9]+(\.[0-9]+){1,3}$ ]]; then
+            echo "::error::'$INPUT' isn't a numeric version (v1.2.0 or 1.2.0, 2-4 parts). Launchers only self-update between plain numeric versions."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet build --configuration Release
+      - run: dotnet test --configuration Release --no-build
+
+  build:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { rid: win-x64,   os: windows-latest, server: true }
+          - { rid: linux-x64, os: ubuntu-latest,  server: true }
+          # osx builds must run on macOS so the SDK ad-hoc signs them: Apple Silicon refuses unsigned binaries.
+          - { rid: osx-x64,   os: macos-latest,   server: false }
+          - { rid: osx-arm64, os: macos-latest,   server: false }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      RID: ${{ matrix.rid }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Publish
+        run: |
+          flags="$PUBLISH_FLAGS --runtime $RID -p:Version=$VERSION"
+          dotnet publish src/OpenShardLauncher.Client $flags --output out/launcher
+          dotnet publish tools/OpenShardLauncher.Publisher $flags --output out/publisher
+          if [[ "${{ matrix.server }}" == "true" ]]; then
+            dotnet publish src/OpenShardLauncher.Server $flags --output out/server
+          fi
+          # Native libraries' symbol files come from their packages (~100 MB); players don't need them.
+          find out -name '*.pdb' -delete
+
+      # The exe name comes from <LauncherExeName>, and self-update refuses a package without it at the zip root.
+      - name: Check the launcher exe
+        run: |
+          name="$(dotnet msbuild src/OpenShardLauncher.Client -getProperty:AssemblyName | tr -d '\r')"
+          [[ "$RID" == win-* ]] && name="$name.exe"
+          test -f "out/launcher/$name" || { echo "::error::out/launcher/$name is missing"; ls out/launcher; exit 1; }
+          echo "LAUNCHER_EXE=$name" >> "$GITHUB_ENV"
+
+      - name: Verify the macOS code signatures
+        if: runner.os == 'macOS'
+        run: |
+          codesign --verify --strict --verbose=2 "out/launcher/$LAUNCHER_EXE"
+          codesign --verify --strict --verbose=2 out/publisher/OpenShardLauncher.Publisher
+          find out -name '*.dylib' -exec codesign --verify --strict --verbose=2 {} \;
+
+      # The launcher zip is the self-update package: its files at the zip root, named launcher-{version}.{rid}.zip.
+      # zip keeps the Unix executable bit, which the launcher restores when it unpacks an update.
+      - name: Zip
+        run: |
+          mkdir dist
+          pack() {
+            if [[ "$RUNNER_OS" == "Windows" ]]; then
+              (cd "$1" && 7z a -tzip -r "$GITHUB_WORKSPACE/dist/$2" . > /dev/null)
+            else
+              (cd "$1" && zip -r -X -q "$GITHUB_WORKSPACE/dist/$2" .)
+            fi
+          }
+          pack out/launcher "launcher-$VERSION.$RID.zip"
+          pack out/publisher "publisher-$VERSION.$RID.zip"
+          if [[ -d out/server ]]; then pack out/server "server-$VERSION.$RID.zip"; fi
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.rid }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    needs: [version, test, build]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        run: cd dist && sha256sum *.zip > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      # A draft, so the binaries can be scanned (VirusTotal, Defender) and the feed published before players see it.
+      - name: Create the draft release
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
+            --title "$VERSION" \
+            --notes "Unsigned builds of $VERSION. Launcher zips (launcher-$VERSION.<platform>.zip) are also the self-update packages: put them into the feed's packages folder and publish the feed with the Publisher."

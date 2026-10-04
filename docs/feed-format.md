@@ -101,4 +101,6 @@ Upload tools don't follow the Publisher's write order, so use one of these:
    2. `packages/manifest.sig`, then `packages/manifest.json`, then `files.sig`, then `files.json`.
    3. Delete what the Publisher pruned (sync with delete).
 
+Use an upload tool that writes to a temporary name and renames the file when it's complete (rclone and rsync do by default), so a blob is never visible half-written.
+
 Launchers tolerate a feed caught mid-upload. A missing blob, or a list and signature that still don't match after one refetch, is reported as "the server is updating, try again shortly", not as untrusted.

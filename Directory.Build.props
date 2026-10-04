@@ -11,6 +11,10 @@
          Stable once released: self-update looks for an exe of this name in the package. -->
     <LauncherExeName>OpenShardLauncher</LauncherExeName>
 
+    <!-- Optional: the launcher's icon (a real .ico), instead of replacing src/OpenShardLauncher.Client/Assets/icon.ico.
+         A relative path is relative to src/OpenShardLauncher.Client/. -->
+    <!-- <LauncherIcon>$(MSBuildThisFileDirectory)branding\icon.ico</LauncherIcon> -->
+
     <!-- Compiled bindings everywhere. Only read by projects that use Avalonia. -->
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
