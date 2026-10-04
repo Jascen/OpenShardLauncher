@@ -54,6 +54,11 @@
         <TextBlock Classes="dialogHint" Text="{views:Text ServerMirrorNote}" IsVisible="{Binding ShowMirrorNote}" />
         <CheckBox Content="{views:Text AllowInsecureOption}" IsChecked="{Binding AllowInsecureDownloads}"
                   ToolTip.Tip="{views:Text AllowInsecureTooltip}" />
+        <Border Background="{DynamicResource WarningBrush}" CornerRadius="3" Padding="8,5"
+                IsVisible="{Binding SecurityNotice.IsVisible}">
+          <TextBlock Text="{Binding SecurityNotice.Text}" Foreground="{DynamicResource WarningTextBrush}"
+                     FontSize="12" TextWrapping="Wrap" />
+        </Border>
       </StackPanel>
 
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">

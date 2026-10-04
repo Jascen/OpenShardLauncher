@@ -52,4 +52,11 @@ public sealed partial class ProgressViewModel : ObservableObject
 
     // Keeps the bars where the run left them.
     public void ShowText(LocalizedText text) => OverallText = UiText.Get(text);
+
+    // What the bars show now, to put back after something else used them (a launcher update that didn't happen).
+    public Snapshot Save() => new(Overall, OverallText, File, FileText);
+
+    public void Restore(Snapshot snapshot) => (Overall, OverallText, File, FileText) = snapshot;
+
+    public sealed record Snapshot(double Overall, string OverallText, double File, string FileText);
 }

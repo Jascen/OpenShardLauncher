@@ -21,6 +21,7 @@ public sealed class UpdateWorkflow(
     CompareStage compare,
     DownloadStage download,
     PackageCheckService packages,
+    TazUOInstaller tazUO,
     ILoggerFactory loggerFactory)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<UpdateWorkflow>();
@@ -119,7 +120,7 @@ public sealed class UpdateWorkflow(
         var plan = Plan(session, list.Document!);
         var packageUpdates = session.Packages ?? await packages.CheckAsync(session.Folder, cancellationToken).ConfigureAwait(false);
         session.Packages = packageUpdates;
-        ApplyPackages(packageUpdates);
+        var packageWarnings = await ApplyPackagesAsync(session, packageUpdates, progress, cancellationToken).ConfigureAwait(false);
 
         var compared = await compare.RunAsync(plan.Filter.ToCompare, session.Comparer, stopAtFirstDifference: false, progress, cancellationToken)
             .ConfigureAwait(false);
@@ -137,7 +138,7 @@ public sealed class UpdateWorkflow(
             {
                 FailedFiles = downloaded.FailedFiles,
                 IgnoredItems = plan.Filter.IgnoredItems,
-                PackageWarnings = packageUpdates.Warnings,
+                PackageWarnings = packageWarnings,
                 FeedUnsigned = list.Trust == FeedTrust.Unsigned,
             };
         }
@@ -151,7 +152,7 @@ public sealed class UpdateWorkflow(
             Result = UpdateResult.Finished,
             FailedFiles = failed,
             IgnoredItems = plan.Filter.IgnoredItems,
-            PackageWarnings = packageUpdates.Warnings,
+            PackageWarnings = packageWarnings,
             FeedUnsigned = list.Trust == FeedTrust.Unsigned,
         };
     }
@@ -197,13 +198,31 @@ public sealed class UpdateWorkflow(
         }
     }
 
-    // Phase 7 plugs the TazUO installer in here (download the package, install it, record its version).
-    private void ApplyPackages(PackageUpdates packageUpdates)
+    // Installs or updates TazUO before the files are compared, then makes sure its profiles exist. A failed install
+    // only adds a warning; the game files still update.
+    private async Task<IReadOnlyList<PackageWarning>> ApplyPackagesAsync(
+        InstallSession session, PackageUpdates packageUpdates, IProgress<UpdateProgress>? progress, CancellationToken cancellationToken)
     {
-        if (packageUpdates.TazUO is { } tazuo)
+        if (!options.TazUO.Enabled)
         {
-            _logger.LogInformation("TazUO {Version} is available; installing packages isn't supported yet", tazuo.Version);
+            return packageUpdates.Warnings;
         }
+
+        var warnings = packageUpdates.Warnings;
+        if (packageUpdates.TazUO is { } package)
+        {
+            if (await tazUO.InstallAsync(package, session.Folder, progress, cancellationToken).ConfigureAwait(false))
+            {
+                session.Packages = packageUpdates with { TazUO = null };
+            }
+            else
+            {
+                warnings = [.. warnings, PackageWarning.TazUOInstallFailed];
+            }
+        }
+
+        tazUO.EnsureProfiles(session.Folder);
+        return warnings;
     }
 
     // Deletes what the feed removed. A file that is already gone is fine; one that can't be deleted is reported like a

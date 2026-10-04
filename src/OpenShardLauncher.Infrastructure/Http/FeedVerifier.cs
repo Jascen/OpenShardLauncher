@@ -17,11 +17,15 @@ public sealed record FeedDocument(byte[] Content, string? Signature);
 //   the two requests); if they still don't match, the feed is reported as FeedUpdating, since a list and signature
 //   caught mid-upload look exactly like that
 // - no signature: accepted as Unsigned only when the launcher is built with AllowUnsignedFeed, the server is the
-//   default one and the transport is https (or loopback); otherwise FeedUntrusted
+//   default one and the transport is https (or loopback). Otherwise FeedUntrusted, or with AllowUnsignedFeed the reason
+//   it was refused: UnsignedFeedNotDefaultServer or UnsignedFeedInsecure
 // - no trusted keys and no unsigned mode: FeedUntrusted without fetching anything
 // - a files.json with a lower version than the last one accepted from that server (a rollback): FeedUntrusted
 public sealed class FeedVerifier(LauncherOptions options, ServerEndpoint endpoint, FeedStateStore feedState, ILogger<FeedVerifier> logger)
 {
+    // Raised (on the fetching thread) each time a document was accepted without a signature, for the security notice.
+    public event EventHandler? UnsignedAccepted;
+
     // Names are checked against a stand-in root: whether a name stays inside a folder doesn't depend on the folder.
     private static readonly string ContainmentRoot = Path.Combine(Path.GetTempPath(), "openshardlauncher-containment");
 
@@ -77,14 +81,13 @@ public sealed class FeedVerifier(LauncherOptions options, ServerEndpoint endpoin
                 trust = FeedTrust.Signed;
                 break;
 
-            case SignatureStatus.Missing when CanAcceptUnsigned(server, name):
+            case SignatureStatus.Missing when RefuseUnsigned(server, name) is { } refused:
+                return FeedResult<T>.Failure(refused);
+
+            case SignatureStatus.Missing:
                 logger.LogWarning("Accepted {Name} from {Server} without a signature (AllowUnsignedFeed)", name, server);
                 trust = FeedTrust.Unsigned;
                 break;
-
-            case SignatureStatus.Missing:
-                logger.LogError("{Name} from {Server} has no signature", name, server);
-                return FeedResult<T>.Failure(UpdateError.FeedUntrusted);
 
             default:
                 logger.LogError("{Name} from {Server} has a signature, but the launcher has no keys to check it with", name, server);
@@ -102,29 +105,37 @@ public sealed class FeedVerifier(LauncherOptions options, ServerEndpoint endpoin
             return FeedResult<T>.Failure(UpdateError.BadData);
         }
 
-        return accept(parsed, trust);
+        var accepted = accept(parsed, trust);
+        if (accepted.Succeeded && trust == FeedTrust.Unsigned)
+        {
+            UnsignedAccepted?.Invoke(this, EventArgs.Empty);
+        }
+
+        return accepted;
     }
 
-    private bool CanAcceptUnsigned(Uri server, string name)
+    // Why a document without a signature can't be accepted, or null when it can.
+    private UpdateError? RefuseUnsigned(Uri server, string name)
     {
         if (!options.AllowUnsignedFeed)
         {
-            return false;
+            logger.LogError("{Name} from {Server} has no signature", name, server);
+            return UpdateError.FeedUntrusted;
         }
 
         if (ServerEndpoint.Normalize(server) != endpoint.Default)
         {
             logger.LogError("Unsigned feeds are only accepted from the default server, not {Server}; refusing {Name}", server, name);
-            return false;
+            return UpdateError.UnsignedFeedNotDefaultServer;
         }
 
         if (!TransportPolicy.IsSecure(server))
         {
             logger.LogError("Unsigned feeds are only accepted over https (or from this machine); refusing {Name} from {Server}", name, server);
-            return false;
+            return UpdateError.UnsignedFeedInsecure;
         }
 
-        return true;
+        return null;
     }
 
     private FeedResult<FileList> AcceptFileList(Uri server, FileList list, FeedTrust trust)

@@ -49,7 +49,8 @@ public sealed class PackageCheckService(
             {
                 // The feed has no packages; nothing to warn about.
                 UpdateError.NothingPublished => PackageUpdates.None,
-                UpdateError.FeedUntrusted => Warn(PackageWarning.ManifestUntrusted),
+                UpdateError.FeedUntrusted or UpdateError.UnsignedFeedNotDefaultServer or UpdateError.UnsignedFeedInsecure =>
+                    Warn(PackageWarning.ManifestUntrusted),
                 UpdateError.FeedUpdating => Warn(PackageWarning.ManifestUpdating),
                 _ => Warn(PackageWarning.ManifestUnreachable),
             };
@@ -73,7 +74,6 @@ public sealed class PackageCheckService(
             return updates with { Warnings = [PackageWarning.ManifestUntrusted] };
         }
 
-        var offered = Version.Parse(package.Version);
         var installed = feedState.GetInstalledVersion(PackageRole.TazUO);
         if (!game.IsInstalled(folder.Root))
         {
@@ -82,7 +82,7 @@ public sealed class PackageCheckService(
         }
 
         // Installed, but by something that didn't record a version: offer the package so the install is known again.
-        if (installed is null || !Version.TryParse(installed, out var current) || offered > current)
+        if (installed is null || !Version.TryParse(installed, out var current) || PackageVersions.IsNewer(package.Version, current))
         {
             logger.LogInformation("TazUO {Installed} can be updated to {Version}", installed ?? "(unknown version)", package.Version);
             return updates with { TazUO = package };
@@ -95,9 +95,10 @@ public sealed class PackageCheckService(
     // remembers its version when it is the newest so far.
     public bool AcceptVersion(string role, PackageEntry package)
     {
-        var offered = Version.Parse(package.Version);
-        if (feedState.GetHighestManifestVersion(role) is { } stored && Version.TryParse(stored, out var highest))
+        var offered = PackageVersions.Normalize(Version.Parse(package.Version));
+        if (feedState.GetHighestManifestVersion(role) is { } stored && Version.TryParse(stored, out var parsed))
         {
+            var highest = PackageVersions.Normalize(parsed);
             if (offered < highest)
             {
                 logger.LogError(

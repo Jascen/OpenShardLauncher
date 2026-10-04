@@ -25,8 +25,10 @@ public sealed partial class SettingsViewModel : DialogViewModelBase<bool>
         LauncherOptions options,
         LauncherFolder launcherFolder,
         IFolderPicker folderPicker,
+        SecurityNoticeViewModel securityNotice,
         ILogger<SettingsViewModel> logger)
     {
+        SecurityNotice = securityNotice;
         _settings = settings;
         _options = options;
         _launcherFolder = launcherFolder;
@@ -45,6 +47,9 @@ public sealed partial class SettingsViewModel : DialogViewModelBase<bool>
     public override string Title => UiText.Get(StringKeys.SettingsTitle);
 
     public IgnoreListEditorViewModel IgnoreList { get; }
+
+    // The unsigned-feed notice as a read-only line; hidden unless the launcher allows unsigned feeds.
+    public SecurityNoticeViewModel SecurityNotice { get; }
 
     // Only meaningful with TazUO, which is what Play starts.
     public bool ShowWarnIfNotVerified => _options.TazUO.Enabled;

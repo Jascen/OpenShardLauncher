@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using OpenShardLauncher.Client.Services;
 using OpenShardLauncher.Core.Model;
+using OpenShardLauncher.Core.Packages;
 using OpenShardLauncher.Core.Storage;
 using OpenShardLauncher.Infrastructure.Logging;
 using OpenShardLauncher.Infrastructure.Platform;
@@ -35,11 +36,15 @@ public static class LauncherHost
         builder.Services.AddLauncher(options, dataFolder, new LauncherFolder(launcherFolder));
 
         var host = builder.Build();
-        LogStartup(host.Services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(LauncherHost)), options, dataFolder);
+        var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(LauncherHost));
+        LogStartup(logger, options, dataFolder, host.Services.GetRequiredService<InstalledLauncher>());
+
+        // What a finished (or abandoned) self-update left next to the exe. The applier may still be exiting.
+        host.Services.GetRequiredService<LauncherSelfUpdateService>().CleanUpTempFolder();
         return host;
     }
 
-    private static void LogStartup(ILogger logger, LauncherOptions options, LauncherDataFolder dataFolder)
+    private static void LogStartup(ILogger logger, LauncherOptions options, LauncherDataFolder dataFolder, InstalledLauncher launcher)
     {
         logger.LogInformation(
             "{Title} launcher {Version} starting on {Platform}; update server {UpdateUrl}, {KeyCount} trusted keys",
@@ -52,6 +57,24 @@ public static class LauncherHost
         else
         {
             logger.LogWarning("The launcher folder isn't writable; launcher data is in {Path} and self-update is disabled", dataFolder.Path);
+        }
+
+        if (options.TrustedPublicKeys.Count == 0 && !options.AllowUnsignedFeed)
+        {
+            logger.LogError(
+                "No trusted keys and AllowUnsignedFeed is off, so nothing can be verified and no update checks run. " +
+                "Add a key from `publisher keygen` to launcher.json, or set AllowUnsignedFeed");
+        }
+        else if (options.AllowUnsignedFeed)
+        {
+            logger.LogWarning("Feed signatures are not required (AllowUnsignedFeed): unsigned feeds are accepted from {UpdateUrl} over https or loopback", options.UpdateUrl);
+        }
+
+        // Diagnostic only: SmartScreen decides on it. Self-update never copies this exe, so the mark isn't carried over.
+        var exe = Path.Combine(launcher.Folder, launcher.ExeName);
+        if (MarkOfTheWeb.IsMarked(exe))
+        {
+            logger.LogInformation("{Exe} has a Mark of the Web (Zone.Identifier): it was downloaded with a browser", exe);
         }
     }
 }

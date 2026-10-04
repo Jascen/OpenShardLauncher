@@ -23,7 +23,8 @@ internal sealed class TestLauncher : IDisposable
         Uri updateUrl,
         IReadOnlyList<TrustedKey> keys,
         bool allowUnsignedFeed = false,
-        Func<LauncherOptions, LauncherOptions>? configure = null)
+        Func<LauncherOptions, LauncherOptions>? configure = null,
+        string launcherVersion = "1.0.0")
     {
         var options = new LauncherOptions
         {
@@ -42,6 +43,10 @@ internal sealed class TestLauncher : IDisposable
         services.AddSingleton<FeedStateStore>();
         services.AddSingleton(new PlatformInfo(Platform));
         services.AddSingleton<IGameLauncher>(Game);
+        LauncherFolder = Path.Combine(_root.FullName, "launcher");
+        Directory.CreateDirectory(LauncherFolder);
+        services.AddSingleton(new InstalledLauncher(Version.TryParse(launcherVersion, out var version) ? version : null, LauncherFolder, ExeName));
+        services.AddSingleton<ISelfUpdater>(SelfUpdater);
         services.AddOpenShardLauncherInfrastructure(o =>
         {
             o.RetryBaseDelay = TimeSpan.Zero;
@@ -53,7 +58,19 @@ internal sealed class TestLauncher : IDisposable
         InstallFolder = new InstallFolder(Path.Combine(_root.FullName, "Game"));
     }
 
+    public const string ExeName = "Launcher.exe";
+
     public InstallFolder InstallFolder { get; }
+
+    // The running launcher's folder (InstalledLauncher.Folder), where .temp/ goes.
+    public string LauncherFolder { get; }
+
+    public LauncherDataFolder DataFolder => _services.GetRequiredService<LauncherDataFolder>();
+
+    public FakeSelfUpdater SelfUpdater { get; } = new();
+
+    public T Get<T>()
+        where T : notnull => _services.GetRequiredService<T>();
 
     public IUpdateServer Server => _services.GetRequiredService<IUpdateServer>();
 
@@ -85,5 +102,19 @@ internal sealed class FakeGameLauncher : IGameLauncher
 
     public void Start(string installFolder)
     {
+    }
+}
+
+// Records the hand-off instead of starting a process.
+internal sealed class FakeSelfUpdater : ISelfUpdater
+{
+    public bool Succeeds { get; set; } = true;
+
+    public (string StagingFolder, string Version)? HandedOff { get; private set; }
+
+    public Task<bool> HandOffAsync(string stagingFolder, string newVersion, CancellationToken cancellationToken)
+    {
+        HandedOff = (stagingFolder, newVersion);
+        return Task.FromResult(Succeeds);
     }
 }

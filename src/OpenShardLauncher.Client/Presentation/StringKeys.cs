@@ -14,6 +14,23 @@ public static class StringKeys
     public const string CloseTooltip = nameof(CloseTooltip);
     public const string CancelTooltip = nameof(CancelTooltip);
     public const string DataFolderFallbackNotice = nameof(DataFolderFallbackNotice);
+    public const string LauncherUpdatedNotice = nameof(LauncherUpdatedNotice); // {0} = version
+    public const string LauncherUpdateFailedNotice = nameof(LauncherUpdateFailedNotice); // {0} = version, {1} = reason (not localized)
+
+    // Launcher update banner
+    public const string LauncherUpdateAvailable = nameof(LauncherUpdateAvailable); // {0} = version
+    public const string LauncherUpdateAvailableUnsigned = nameof(LauncherUpdateAvailableUnsigned); // {0} = version
+    public const string UpdateLauncherButton = nameof(UpdateLauncherButton);
+    public const string NotNowButton = nameof(NotNowButton);
+    public const string LauncherFolderNotWritable = nameof(LauncherFolderNotWritable);
+    public const string LauncherTranslocated = nameof(LauncherTranslocated); // macOS: run from a read-only copy of Downloads
+    public const string CancelForLauncherUpdateTitle = nameof(CancelForLauncherUpdateTitle);
+    public const string CancelForLauncherUpdateMessage = nameof(CancelForLauncherUpdateMessage);
+    public const string CancelAndUpdateButton = nameof(CancelAndUpdateButton);
+
+    // Unsigned feed notice (main window strip and Settings)
+    public const string UnsignedFeedAllowedNotice = nameof(UnsignedFeedAllowedNotice);
+    public const string UnsignedFeedInUseNotice = nameof(UnsignedFeedInUseNotice);
 
     // Dialogs
     public const string OkButton = nameof(OkButton);
@@ -78,6 +95,8 @@ public static class StringKeys
     public const string NothingPublishedError = nameof(NothingPublishedError);
     public const string FeedUntrustedError = nameof(FeedUntrustedError);
     public const string FeedUpdatingError = nameof(FeedUpdatingError);
+    public const string UnsignedFeedNotDefaultServerError = nameof(UnsignedFeedNotDefaultServerError);
+    public const string UnsignedFeedInsecureError = nameof(UnsignedFeedInsecureError);
     public const string NoTrustedKeysError = nameof(NoTrustedKeysError);
     public const string InstallFolderNotWritableError = nameof(InstallFolderNotWritableError);
     public const string DiskFullError = nameof(DiskFullError);
@@ -93,4 +112,11 @@ public static class StringKeys
     public const string PackagesNotConfiguredWarning = nameof(PackagesNotConfiguredWarning);
     public const string TazUOInstallFailedWarning = nameof(TazUOInstallFailedWarning);
     public const string SelfUpdateFailedWarning = nameof(SelfUpdateFailedWarning);
+
+    // Launcher update errors
+    public const string SelfUpdateNotOfferedError = nameof(SelfUpdateNotOfferedError);
+    public const string SelfUpdateDownloadFailedError = nameof(SelfUpdateDownloadFailedError);
+    public const string SelfUpdateVerificationFailedError = nameof(SelfUpdateVerificationFailedError);
+    public const string SelfUpdatePackageInvalidError = nameof(SelfUpdatePackageInvalidError);
+    public const string SelfUpdateHandOffFailedError = nameof(SelfUpdateHandOffFailedError);
 }

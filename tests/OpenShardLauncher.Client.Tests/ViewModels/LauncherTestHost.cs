@@ -2,8 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using OpenShardLauncher.Client.Composition;
 using OpenShardLauncher.Client.Services;
+using OpenShardLauncher.Client.ViewModels;
 using OpenShardLauncher.Core.Abstractions;
 using OpenShardLauncher.Core.Model;
+using OpenShardLauncher.Core.Packages;
 using OpenShardLauncher.Core.Storage;
 using OpenShardLauncher.Shared.Feed;
 
@@ -32,8 +34,24 @@ internal sealed class LauncherTestHost : IDisposable
         services.AddSingleton<IUpdateServer>(sp => new FakeUpdateServer(sp.GetRequiredService<ServerEndpoint>()));
         services.AddSingleton<IGameLauncher>(Game);
         services.AddSingleton<IFolderPicker>(FolderPicker);
+        services.AddSingleton(new InstalledLauncher(new Version(1, 0, 0), LauncherFolder, ExeName));
+        services.AddSingleton<ISelfUpdater>(SelfUpdater);
+        services.AddSingleton<IAppLifetime>(Lifetime);
+        services.AddSingleton(sp => new LauncherUpdateBannerViewModel(
+            sp.GetRequiredService<LauncherSelfUpdateService>(), sp.GetRequiredService<InstalledLauncher>(), dataFolder, _ => LauncherFolderWritable));
         _services = services.BuildServiceProvider();
     }
+
+    public const string ExeName = "Launcher.exe";
+
+    public LauncherDataFolder DataFolder => Get<LauncherDataFolder>();
+
+    public FakeSelfUpdater SelfUpdater { get; } = new();
+
+    public FakeAppLifetime Lifetime { get; } = new();
+
+    // What the banner's writability probe of the launcher folder answers.
+    public bool LauncherFolderWritable { get; set; } = true;
 
     // Folders the test can use as install folders: outside the launcher folder.
     public string Root => _root.FullName;
@@ -113,14 +131,25 @@ internal sealed class FakeUpdateServer(ServerEndpoint endpoint) : IUpdateServer
         return Result;
     }
 
-    public Task<FeedResult<PackageManifest>> GetPackageManifestAsync(CancellationToken cancellationToken) =>
-        Task.FromResult(FeedResult<PackageManifest>.Failure(UpdateError.NothingPublished));
+    public FeedResult<PackageManifest> Manifest { get; set; } = FeedResult<PackageManifest>.Failure(UpdateError.NothingPublished);
+
+    // Package files by name, for DownloadPackageAsync.
+    public Dictionary<string, byte[]> Packages { get; } = [];
+
+    public Task<FeedResult<PackageManifest>> GetPackageManifestAsync(CancellationToken cancellationToken) => Task.FromResult(Manifest);
 
     public Task DownloadBlobAsync(FileEntry file, InstallFolder folder, IProgress<long>? progress, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 
-    public Task DownloadPackageAsync(PackageEntry package, string destinationPath, IProgress<long>? progress, CancellationToken cancellationToken) =>
-        throw new NotSupportedException();
+    // Yields first, like a real download, so the command calling it is still running when it fails.
+    public async Task DownloadPackageAsync(PackageEntry package, string destinationPath, IProgress<long>? progress, CancellationToken cancellationToken)
+    {
+        await Task.Yield();
+        await File.WriteAllBytesAsync(
+            destinationPath,
+            Packages.TryGetValue(package.File, out var bytes) ? bytes : throw new UpdateException(UpdateError.FileFailed, package.File),
+            cancellationToken);
+    }
 }
 
 internal sealed class FakeGame : IGameLauncher
@@ -144,4 +173,22 @@ internal sealed class FakeFolderPicker : IFolderPicker
     public string? Next { get; set; }
 
     public Task<string?> PickFolderAsync(string title, string? startFolder) => Task.FromResult(Next);
+}
+
+internal sealed class FakeSelfUpdater : ISelfUpdater
+{
+    public string? HandedOffVersion { get; private set; }
+
+    public Task<bool> HandOffAsync(string stagingFolder, string newVersion, CancellationToken cancellationToken)
+    {
+        HandedOffVersion = newVersion;
+        return Task.FromResult(true);
+    }
+}
+
+internal sealed class FakeAppLifetime : IAppLifetime
+{
+    public int Shutdowns { get; private set; }
+
+    public void Shutdown() => Shutdowns++;
 }

@@ -13,7 +13,10 @@
   "TazUO": {
     "Enabled": true,
     "InstallFolder": "TazUO",
-    "ExecutableName": "TazUOLauncher"
+    "ExecutableName": "TazUOLauncher",
+    "Profiles": [
+      { "Id": "openshard-local", "Name": "OpenShard (local)", "Ip": "127.0.0.1", "Port": 2593, "ClientVersion": "7.0.15.1" }
+    ]
   },
   "PackageCheckInterval": "04:00:00"
 }

@@ -1,0 +1,13 @@
+<!-- The unsigned-feed strip under the nav bar. Shown whenever the launcher is built with AllowUnsignedFeed and can't be
+     dismissed. Its colors come from WarningBrush/WarningTextBrush in Themes/Branding.axaml. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenShardLauncher.Client.ViewModels"
+             x:Class="OpenShardLauncher.Client.Views.Controls.SecurityNotice"
+             x:DataType="vm:SecurityNoticeViewModel"
+             IsVisible="{Binding IsVisible}">
+  <Border Background="{DynamicResource WarningBrush}" Padding="12,5">
+    <TextBlock Text="{Binding Text}" Foreground="{DynamicResource WarningTextBrush}" FontSize="13" FontWeight="SemiBold"
+               HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+  </Border>
+</UserControl>

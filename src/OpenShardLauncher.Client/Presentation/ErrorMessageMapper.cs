@@ -1,4 +1,5 @@
 using OpenShardLauncher.Core.Model;
+using OpenShardLauncher.Core.Packages;
 
 namespace OpenShardLauncher.Client.Presentation;
 
@@ -26,6 +27,8 @@ public static class ErrorMessageMapper
         UpdateError.NothingPublished => new(StringKeys.NothingPublishedError),
         UpdateError.FeedUntrusted => new(StringKeys.FeedUntrustedError),
         UpdateError.FeedUpdating => new(StringKeys.FeedUpdatingError),
+        UpdateError.UnsignedFeedNotDefaultServer => new(StringKeys.UnsignedFeedNotDefaultServerError),
+        UpdateError.UnsignedFeedInsecure => new(StringKeys.UnsignedFeedInsecureError),
         UpdateError.NoTrustedKeys => new(StringKeys.NoTrustedKeysError),
         UpdateError.InstallFolderNotWritable => new(StringKeys.InstallFolderNotWritableError),
         UpdateError.DiskFull => new(StringKeys.DiskFullError),
@@ -43,5 +46,15 @@ public static class ErrorMessageMapper
         PackageWarning.TazUOInstallFailed => new(StringKeys.TazUOInstallFailedWarning),
         PackageWarning.SelfUpdateFailed => new(StringKeys.SelfUpdateFailedWarning),
         _ => throw new ArgumentOutOfRangeException(nameof(warning), warning, null),
+    };
+
+    public static LocalizedText Map(SelfUpdateError error) => error switch
+    {
+        SelfUpdateError.NotOffered => new(StringKeys.SelfUpdateNotOfferedError),
+        SelfUpdateError.DownloadFailed => new(StringKeys.SelfUpdateDownloadFailedError),
+        SelfUpdateError.VerificationFailed => new(StringKeys.SelfUpdateVerificationFailedError),
+        SelfUpdateError.PackageInvalid => new(StringKeys.SelfUpdatePackageInvalidError),
+        SelfUpdateError.HandOffFailed => new(StringKeys.SelfUpdateHandOffFailedError),
+        _ => throw new ArgumentOutOfRangeException(nameof(error), error, null),
     };
 }
