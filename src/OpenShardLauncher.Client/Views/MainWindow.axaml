@@ -64,13 +64,16 @@
 
       <!-- Title and play button -->
       <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
-        <TextBlock Text="{Binding Title}" FontFamily="{DynamicResource DisplayFont}"
-                   FontSize="92" FontWeight="Bold" LetterSpacing="4"
-                   HorizontalAlignment="Center" Foreground="{DynamicResource TitleBrush}">
-          <TextBlock.Effect>
-            <DropShadowEffect Color="{StaticResource TitleGlowColor}" BlurRadius="28" OffsetX="0" OffsetY="0" Opacity="0.85" />
-          </TextBlock.Effect>
-        </TextBlock>
+        <!-- A title too wide for the window shrinks to fit instead of being cut off; short ones keep the full size -->
+        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" MaxWidth="840" HorizontalAlignment="Center">
+          <TextBlock Text="{Binding Title}" FontFamily="{DynamicResource DisplayFont}"
+                     FontSize="92" FontWeight="Bold" LetterSpacing="4"
+                     Foreground="{DynamicResource TitleBrush}">
+            <TextBlock.Effect>
+              <DropShadowEffect Color="{StaticResource TitleGlowColor}" BlurRadius="28" OffsetX="0" OffsetY="0" Opacity="0.85" />
+            </TextBlock.Effect>
+          </TextBlock>
+        </Viewbox>
         <TextBlock Text="{Binding Subtitle}" FontFamily="{DynamicResource DisplayFont}" FontSize="17"
                    HorizontalAlignment="Center" Foreground="{DynamicResource SubtitleBrush}">
           <TextBlock.Effect>

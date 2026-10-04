@@ -1,0 +1,85 @@
+<Project>
+  <!-- Release-build warnings for launcher configurations that work but are almost certainly a mistake to ship:
+       OSL0001  no trusted keys and AllowUnsignedFeed off: the launcher shows an error and never checks for updates.
+       OSL0002  still branded with the upstream default exe name or title.
+       OSL0003  launcher.json couldn't be read, so it wasn't checked.
+       They stay warnings (the build succeeds), even with TreatWarningsAsErrors. Debug builds don't check, because a
+       developer's launcher.local.json adds keys there. -->
+  <PropertyGroup>
+    <MSBuildWarningsNotAsErrors>$(MSBuildWarningsNotAsErrors);OSL0001;OSL0002;OSL0003</MSBuildWarningsNotAsErrors>
+    <_UpstreamLauncherName>OpenShardLauncher</_UpstreamLauncherName>
+  </PropertyGroup>
+
+  <Target Name="CheckLauncherConfiguration" BeforeTargets="CoreCompile" Condition="'$(Configuration)' == 'Release'">
+    <ReadLauncherJson Path="$(MSBuildProjectDirectory)\Resources\launcher.json">
+      <Output TaskParameter="Title" PropertyName="_LauncherJsonTitle" />
+      <Output TaskParameter="TrustedKeyCount" PropertyName="_LauncherJsonKeyCount" />
+      <Output TaskParameter="AllowUnsignedFeed" PropertyName="_LauncherJsonAllowUnsigned" />
+    </ReadLauncherJson>
+
+    <Warning Code="OSL0001" File="$(MSBuildProjectDirectory)\Resources\launcher.json"
+             Condition="'$(_LauncherJsonKeyCount)' == '0' And '$(_LauncherJsonAllowUnsigned)' != 'true'"
+             Text="launcher.json has no TrustedPublicKeys and AllowUnsignedFeed is false, so this launcher can never update: it shows an error at startup. Add a key from `publisher keygen`, or set AllowUnsignedFeed." />
+
+    <Warning Code="OSL0002" File="$(DirectoryBuildPropsPath)"
+             Condition="'$(LauncherExeName)' == '$(_UpstreamLauncherName)'"
+             Text="&lt;LauncherExeName&gt; is still the upstream default '$(_UpstreamLauncherName)'. Set your launcher's exe name in Directory.Build.props (it can't change once players have it)." />
+    <Warning Code="OSL0002" File="$(MSBuildProjectDirectory)\Resources\launcher.json"
+             Condition="'$(_LauncherJsonTitle)' == '$(_UpstreamLauncherName)'"
+             Text="The launcher.json Title is still the upstream default '$(_UpstreamLauncherName)'. Set your shard's title in launcher.json." />
+  </Target>
+
+  <!-- Reads launcher.json the way LauncherOptionsLoader does: case-insensitive names, comments and trailing commas
+       allowed, a missing property keeps LauncherOptions' default. Inline tasks compile against netstandard, which has no
+       System.Text.Json, so this uses the XML-mapped JSON reader after removing comments and trailing commas. -->
+  <UsingTask TaskName="ReadLauncherJson" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Path ParameterType="System.String" Required="true" />
+      <Title ParameterType="System.String" Output="true" />
+      <TrustedKeyCount ParameterType="System.Int32" Output="true" />
+      <AllowUnsignedFeed ParameterType="System.Boolean" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Using Namespace="System.Xml" />
+      <Using Namespace="System.Xml.Linq" />
+      <Using Namespace="System.Runtime.Serialization.Json" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        try
+        {
+            // Strings are matched first so that "//" or ",]" inside a string are kept.
+            const string jsonString = @"(""(?:\\.|[^""\\])*"")";
+            var json = Regex.Replace(File.ReadAllText(Path), jsonString + @"|//[^\n]*|/\*[\s\S]*?\*/", m => m.Groups[1].Value);
+            json = Regex.Replace(json, jsonString + @"|,(\s*[}\]])", m => m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value);
+
+            XElement root;
+            using (var reader = JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes(json), XmlDictionaryReaderQuotas.Max))
+            {
+                root = XElement.Load(reader);
+            }
+
+            // Top-level properties only; names that aren't valid XML names are mapped to <item item="name">.
+            Func<string, XElement> find = name => root.Elements()
+                .LastOrDefault(e => string.Equals((string)e.Attribute("item") ?? e.Name.LocalName, name, StringComparison.OrdinalIgnoreCase));
+            Func<XElement, string> type = e => (string)e.Attribute("type") ?? "string";
+
+            var title = find("Title");
+            Title = title != null && type(title) == "string" ? title.Value : "OpenShardLauncher";
+            var keys = find("TrustedPublicKeys");
+            TrustedKeyCount = keys != null && type(keys) == "array" ? keys.Elements().Count() : 0;
+            var unsigned = find("AllowUnsignedFeed");
+            AllowUnsignedFeed = unsigned != null && type(unsigned) == "boolean" && unsigned.Value == "true";
+        }
+        catch (Exception ex)
+        {
+            // Only a warning, and nothing else is checked: the launcher reports an unreadable launcher.json at startup.
+            TrustedKeyCount = -1;
+            Log.LogWarning(null, "OSL0003", null, Path, 0, 0, 0, 0, "launcher.json couldn't be checked: {0}", ex.Message);
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+</Project>

@@ -3,8 +3,14 @@
     <OutputType>WinExe</OutputType>
     <AssemblyName>$(LauncherExeName)</AssemblyName>
     <RootNamespace>OpenShardLauncher.Client</RootNamespace>
-    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <!-- Exe, window and taskbar icon. Must be a real .ico. Forks replace Assets/icon.ico or set <LauncherIcon> in
+         Directory.Build.props. -->
+    <LauncherIcon Condition="'$(LauncherIcon)' == ''">Assets\icon.ico</LauncherIcon>
+    <ApplicationIcon>$(LauncherIcon)</ApplicationIcon>
   </PropertyGroup>
+
+  <!-- Release-build warnings: no trusted keys, unbranded exe name or title. -->
+  <Import Project="LauncherBuildChecks.targets" />
 
   <ItemGroup>
     <!-- Build-time launcher options (title, update URL, trusted keys). Forks edit this file. -->
@@ -16,8 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Window and taskbar icon (ApplicationIcon only sets the exe icon, and only on Windows). Must be a real .ico. -->
-    <AvaloniaResource Include="Assets\icon.ico" />
+    <!-- Window and taskbar icon (ApplicationIcon only sets the exe icon, and only on Windows), always loaded as
+         /Assets/icon.ico. -->
+    <AvaloniaResource Include="$(LauncherIcon)" Link="Assets\icon.ico" />
     <!-- Replaceable art, loaded by Views/LauncherArt.cs. Keep each image's size (see Themes/Controls.axaml); a missing
          one is left blank. -->
     <AvaloniaResource Include="Assets\*.png" />
