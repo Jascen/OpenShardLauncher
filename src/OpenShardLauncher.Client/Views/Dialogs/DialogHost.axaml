@@ -1,0 +1,11 @@
+<!-- The in-window overlay for dialogs: dims the launcher and shows the top dialog, whose view ViewLocator finds. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:services="using:OpenShardLauncher.Client.Services"
+             x:Class="OpenShardLauncher.Client.Views.Dialogs.DialogHost"
+             x:DataType="services:IDialogService"
+             IsVisible="{Binding IsOpen}">
+  <Border Background="{DynamicResource DialogOverlayBrush}">
+    <ContentControl Content="{Binding Current}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+  </Border>
+</UserControl>

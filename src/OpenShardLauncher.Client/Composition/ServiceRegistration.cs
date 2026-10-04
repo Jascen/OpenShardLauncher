@@ -2,11 +2,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenShardLauncher.Client.Services;
 using OpenShardLauncher.Client.ViewModels;
+using OpenShardLauncher.Client.ViewModels.Dialogs;
 using OpenShardLauncher.Core.Abstractions;
 using OpenShardLauncher.Core.Model;
 using OpenShardLauncher.Core.Storage;
 using OpenShardLauncher.Infrastructure;
-using OpenShardLauncher.Infrastructure.Http;
 using OpenShardLauncher.Infrastructure.Platform;
 
 namespace OpenShardLauncher.Client.Composition;
@@ -31,16 +31,14 @@ public static class ServiceRegistration
         services.AddSingleton(dataFolder);
         services.AddSingleton(launcherFolder);
         services.AddSingleton<SettingsStore>();
-        services.AddSingleton<SettingsService>();
         services.AddSingleton<FeedStateStore>();
-        services.AddSingleton(sp => new ServerEndpoint(options, sp.GetRequiredService<SettingsService>().Current.ServerUrlOverride));
 
-        // Registered before the infrastructure (which only adds its own if none exists) so the player's setting applies
-        // from the first request. Nothing else feeds the setting to the HTTP layer; the settings dialog updates it.
-        services.AddSingleton(sp => new TransportPolicy
-        {
-            AllowInsecureDownloads = sp.GetRequiredService<SettingsService>().Current.AllowInsecureDownloads,
-        });
+        // SettingsService owns the effective server and the transport rule, so the player's settings apply from the
+        // first request and saving them updates both. The transport rule is registered before the infrastructure,
+        // which only adds its own if none exists.
+        services.AddSingleton<SettingsService>();
+        services.AddSingleton(sp => sp.GetRequiredService<SettingsService>().ServerEndpoint);
+        services.AddSingleton(sp => sp.GetRequiredService<SettingsService>().TransportPolicy);
         services.TryAddSingleton<IGameLauncher, TazUOLauncher>();
         return services;
     }
@@ -49,12 +47,18 @@ public static class ServiceRegistration
     {
         services.TryAddSingleton<IUrlLauncher, AvaloniaUrlLauncher>();
         services.TryAddSingleton<IAppLifetime, AvaloniaAppLifetime>();
+        services.TryAddSingleton<IFolderPicker, AvaloniaFolderPicker>();
+        services.TryAddSingleton<IDialogService, DialogService>();
         return services;
     }
 
     public static IServiceCollection AddViewModels(this IServiceCollection services)
     {
         services.AddSingleton<MainWindowViewModel>();
+
+        // A fresh copy of the settings each time the dialog opens.
+        services.AddTransient<SettingsViewModel>();
+        services.AddSingleton<Func<SettingsViewModel>>(sp => sp.GetRequiredService<SettingsViewModel>);
         return services;
     }
 }

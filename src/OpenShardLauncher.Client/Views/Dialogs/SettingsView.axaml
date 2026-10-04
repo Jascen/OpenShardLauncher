@@ -1,0 +1,65 @@
+<!-- The settings dialog. Edits a copy (SettingsViewModel): nothing changes until Save. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenShardLauncher.Client.ViewModels.Dialogs"
+             xmlns:views="using:OpenShardLauncher.Client.Views"
+             x:Class="OpenShardLauncher.Client.Views.Dialogs.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+  <Border Classes="dialogFrame" Width="500">
+    <StackPanel Spacing="14">
+      <TextBlock Classes="dialogTitle" Text="{Binding Title}" />
+
+      <!-- Install folder -->
+      <StackPanel Spacing="6">
+        <TextBlock Classes="dialogLabel" Text="{views:Text InstallFolderLabel}" />
+        <Grid ColumnDefinitions="*,Auto">
+          <Border Grid.Column="0" Background="{DynamicResource InputBackgroundBrush}" BorderBrush="{DynamicResource InputBorderBrush}"
+                  BorderThickness="1" CornerRadius="3" Padding="8,6" Margin="0,0,8,0">
+            <TextBlock Text="{Binding InstallPath}" ToolTip.Tip="{Binding InstallPath}" FontSize="12"
+                       Foreground="{DynamicResource DialogMutedTextBrush}" TextTrimming="PrefixCharacterEllipsis"
+                       VerticalAlignment="Center" />
+          </Border>
+          <Button Grid.Column="1" Classes="dialog secondary small" Padding="14,6" FontSize="13"
+                  Content="{views:Text ChangeFolderButton}" Command="{Binding ChangeFolderCommand}" />
+        </Grid>
+        <TextBlock Classes="dialogError" Text="{Binding FolderError}" IsVisible="{Binding HasFolderError}" />
+      </StackPanel>
+
+      <!-- Ignore list, in the folder above -->
+      <StackPanel Spacing="6">
+        <TextBlock Classes="dialogLabel" Text="{views:Text IgnoreListLabel}" />
+        <TextBlock Classes="dialogHint" Text="{views:Text IgnoreListHelp}" />
+        <TextBox Text="{Binding IgnoreList.Text}" AcceptsReturn="True" TextWrapping="NoWrap" Height="96"
+                 FontFamily="Consolas,Menlo,monospace" PlaceholderText="{views:Text IgnoreListPlaceholder}"
+                 AutomationProperties.Name="{views:Text IgnoreListLabel}" />
+      </StackPanel>
+
+      <StackPanel Spacing="2">
+        <CheckBox Content="{views:Text VerifyOnLaunchOption}" IsChecked="{Binding VerifyOnLaunch}" />
+        <CheckBox Content="{views:Text WarnIfNotVerifiedOption}" IsChecked="{Binding WarnIfNotVerified}"
+                  IsVisible="{Binding ShowWarnIfNotVerified}" />
+      </StackPanel>
+
+      <!-- Where updates come from -->
+      <StackPanel Spacing="6">
+        <TextBlock Classes="dialogLabel" Text="{views:Text DownloadsLabel}" />
+        <TextBlock Classes="dialogHint" Text="{views:Text ServerAddressLabel}" />
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Grid.Column="0" Text="{Binding ServerUrl}" PlaceholderText="{Binding DefaultServerUrl}" Margin="0,0,8,0"
+                   AutomationProperties.Name="{views:Text ServerAddressLabel}" />
+          <Button Grid.Column="1" Classes="dialog secondary small" Padding="14,6" FontSize="13"
+                  Content="{views:Text ResetServerButton}" Command="{Binding ResetServerUrlCommand}" />
+        </Grid>
+        <TextBlock Classes="dialogError" Text="{Binding ServerUrlError}" IsVisible="{Binding HasServerUrlError}" />
+        <TextBlock Classes="dialogHint" Text="{views:Text ServerMirrorNote}" IsVisible="{Binding ShowMirrorNote}" />
+        <CheckBox Content="{views:Text AllowInsecureOption}" IsChecked="{Binding AllowInsecureDownloads}"
+                  ToolTip.Tip="{views:Text AllowInsecureTooltip}" />
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">
+        <Button Classes="dialog secondary" Content="{views:Text CancelButton}" Command="{Binding CancelCommand}" IsCancel="True" />
+        <Button Classes="dialog" Content="{views:Text SaveButton}" Command="{Binding SaveCommand}" />
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</UserControl>

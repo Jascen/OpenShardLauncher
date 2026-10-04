@@ -27,6 +27,35 @@
   <data name="CancelTooltip" xml:space="preserve"><value>Cancel update</value></data>
   <data name="DataFolderFallbackNotice" xml:space="preserve"><value>This folder isn't writable, so settings are stored in your user profile and updates are disabled. Move the launcher to a writable folder.</value></data>
 
+  <!-- Dialogs -->
+  <data name="OkButton" xml:space="preserve"><value>OK</value></data>
+  <data name="CancelButton" xml:space="preserve"><value>Cancel</value></data>
+  <data name="SaveButton" xml:space="preserve"><value>Save</value></data>
+  <data name="UnverifiedTitle" xml:space="preserve"><value>Files not verified</value></data>
+  <data name="UnverifiedMessage" xml:space="preserve"><value>The status of your game files is unknown. They may be missing or out of date, which can cause problems in game.</value></data>
+  <data name="PlayAnywayButton" xml:space="preserve"><value>Play anyway</value></data>
+  <data name="IgnoredTitle" xml:space="preserve"><value>Ignored files</value></data>
+  <data name="IgnoredListIntro" xml:space="preserve"><value>These are on the server but match your ignore list in Settings, so they are never downloaded:</value></data>
+
+  <!-- Settings -->
+  <data name="SettingsTitle" xml:space="preserve"><value>Settings</value></data>
+  <data name="InstallFolderLabel" xml:space="preserve"><value>Install folder</value></data>
+  <data name="ChangeFolderButton" xml:space="preserve"><value>Change</value></data>
+  <data name="ChooseFolderTitle" xml:space="preserve"><value>Choose where to install {0}</value></data>
+  <data name="IgnoreListLabel" xml:space="preserve"><value>Ignored files</value></data>
+  <data name="IgnoreListHelp" xml:space="preserve"><value>Files and folders never to download, one per line, written like a .gitignore. For example map0.mul, Music/ or *.cfg</value></data>
+  <data name="IgnoreListPlaceholder" xml:space="preserve"><value># Nothing ignored</value></data>
+  <data name="VerifyOnLaunchOption" xml:space="preserve"><value>Verify files on launch</value></data>
+  <data name="WarnIfNotVerifiedOption" xml:space="preserve"><value>Warn before playing if the files aren't verified</value></data>
+  <data name="DownloadsLabel" xml:space="preserve"><value>Downloads</value></data>
+  <data name="AllowInsecureOption" xml:space="preserve"><value>Allow insecure downloads</value></data>
+  <data name="AllowInsecureTooltip" xml:space="preserve"><value>Lets the launcher download from an update server that doesn't use https</value></data>
+  <data name="ServerAddressLabel" xml:space="preserve"><value>Server address</value></data>
+  <data name="ResetServerButton" xml:space="preserve"><value>Reset to default</value></data>
+  <data name="ServerMirrorNote" xml:space="preserve"><value>This isn't the default server. It must mirror a feed signed with this launcher's keys, or updates will fail.</value></data>
+  <data name="ServerUrlInvalidError" xml:space="preserve"><value>Enter a full http:// or https:// address, without a user name, ? or #.</value></data>
+  <data name="ServerUrlInsecureError" xml:space="preserve"><value>This address doesn't use https. Tick "Allow insecure downloads" to use it.</value></data>
+
   <!-- Status line -->
   <data name="CheckingForUpdates" xml:space="preserve"><value>Checking for updates..</value></data>
   <data name="StartingDownload" xml:space="preserve"><value>Starting the download..</value></data>
