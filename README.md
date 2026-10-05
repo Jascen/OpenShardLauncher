@@ -202,7 +202,7 @@ Upload the output folder to your host. Blobs never change once written, so only 
 
 Any static host with HTTP Range support works: the included server, nginx, Caddy, S3/R2 behind a CDN. Required headers and nginx/rclone examples are in the [server README](src/OpenShardLauncher.Server/README.md#using-another-static-host-instead).
 
-**The included server** (`server-{version}.{rid}.zip`, Windows and Linux): unzip, edit `appsettings.json` (`Server:FeedDirectory`, the `Kestrel` endpoint and certificate), run `OpenShardLauncher.Server`. `/health` reports status only. Use https for anything public.
+**The included server** (`server-{version}.{rid}.zip`, Windows and Linux): unzip, edit `appsettings.json` (`Server:FeedDirectory`, the `Kestrel` endpoint and certificate), run `OpenShardLauncher.Server`. `/health` reports status only. `/latest/launcher/<rid>` (e.g. `https://updates.example.com/latest/launcher/win-x64`) always downloads the newest launcher in the feed, so you can put it on your website. Use https for anything public.
 
 **Rate limiting.** Launchers pause *all* their requests to the server when they get a **429 or 503**, and honour `Retry-After` (seconds or a date, up to 2 minutes; 5 seconds without it). A server or CDN that rate-limits should send `Retry-After`. The included server has an optional per-client concurrency limit (`Server:RateLimiting`, off by default).
 

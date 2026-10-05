@@ -6,6 +6,7 @@ A plain static host for a feed folder produced by the [Publisher](../../tools/Op
 - Uses ASP.NET's static files: Range/`If-Range`, ETag/`Last-Modified`/304, HEAD, no directory listing, no paths outside the folder. Hidden and system files are never served.
 - `Cache-Control: public, max-age=31536000, immutable` on blobs, and `no-cache` on everything else.
 - `/health` returns only the status.
+- `/latest/{role}/{rid}` is a link that never changes, for your website or Discord. For example, `/latest/launcher/win-x64` redirects (302, `no-cache`) to the newest `launcher-*.win-x64.zip` in `packages/manifest.json`, and `/latest/tazuo/win-x64` does the same for TazUO. A role or platform the manifest doesn't list returns 404. The manifest is reread on every request, so a new publish shows up without a restart.
 - No CORS (the launcher isn't a browser client).
 - **Symlinks inside the feed folder are followed.** The folder is the operator's own; don't link to anything you don't want served.
 
@@ -102,5 +103,7 @@ rclone copy feed/blobs remote:bucket/blobs --header-upload "Cache-Control: publi
 rclone copy feed/packages remote:bucket/packages --header-upload "Cache-Control: no-cache"
 rclone copy feed remote:bucket --include "/files.*" --header-upload "Cache-Control: no-cache"
 ```
+
+`/latest/...` links need the included server. On another host, link to your GitHub release instead, or add a redirect rule there (e.g. nginx `location = /latest/launcher/win-x64 { return 302 /packages/launcher-1.2.0.win-x64.zip; }`) and update it with each release.
 
 Keep the same upload order (blobs and packages, then the manifest, then `files.sig`/`files.json`, then deletes). Make sure the CDN doesn't cache `files.json` or the signatures for long, or players see new versions late.
