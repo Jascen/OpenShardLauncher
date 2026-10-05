@@ -21,7 +21,7 @@ public static partial class LatestPackageEndpoint
     private static IResult Redirect(string role, string rid, HttpContext context, IOptions<ServerOptions> options, ILoggerFactory loggers)
     {
         context.Response.Headers.CacheControl = FeedStaticFiles.RevalidateCacheControl;
-        if (role is not (PackageRole.Launcher or PackageRole.TazUO))
+        if (role is not (PackageRole.Launcher or PackageRole.Client))
         {
             return Results.NotFound();
         }

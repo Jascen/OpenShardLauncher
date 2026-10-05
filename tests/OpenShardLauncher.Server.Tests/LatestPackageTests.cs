@@ -32,7 +32,7 @@ public sealed class LatestPackageTests
         using var zip = await client.GetAsync(redirect.Headers.Location, ct);
         Assert.Equal(Zip, await zip.Content.ReadAsStringAsync(ct));
 
-        foreach (var missing in new[] { "/latest/launcher/linux-x64", "/latest/tazuo/win-x64", "/latest/other/win-x64", "/latest/launcher" })
+        foreach (var missing in new[] { "/latest/launcher/linux-x64", "/latest/client/win-x64", "/latest/tazuo/win-x64", "/latest/other/win-x64", "/latest/launcher" })
         {
             using var response = await client.GetAsync(new Uri(missing, UriKind.Relative), ct);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
