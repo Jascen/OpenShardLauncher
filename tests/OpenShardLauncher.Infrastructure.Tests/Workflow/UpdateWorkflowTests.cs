@@ -14,6 +14,9 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
 {
     private static readonly TimeSpan Patience = TimeSpan.FromSeconds(30);
 
+    // The client executable's extension on this OS (InstallFolder.ClientExecutablePath), so an installed client is found
+    private static readonly string Exe = OperatingSystem.IsWindows() ? ".exe" : "";
+
     private readonly P256SigningKey _key = P256SigningKey.Generate();
     private readonly TaskCompletionSource _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private TestFeedServer _server = null!;
@@ -325,7 +328,7 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
     public async Task Client_IsInstalledByTheDownload_WithItsVersionAndTazUOProfiles()
     {
         Publish(("art.mul", "art"));
-        var package = _server.AddPackage(PackageRole.Client, "2.0.0", TestPackages.Zip(("TazUOLauncher.exe", "tazuo"), ("lib/x.dll", "x")));
+        var package = _server.AddPackage(PackageRole.Client, "2.0.0", TestPackages.Zip(("TazUOLauncher" + Exe, "tazuo"), ("lib/x.dll", "x")));
         _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [package]), _key);
         WriteLocal("TazUO/Profiles/mine.json", "kept"); // A player's own profile isn't in the zip
         var progress = new Recorder<UpdateProgress>();
@@ -334,7 +337,7 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
 
         Assert.Equal(UpdateResult.Finished, outcome.Result);
         Assert.Empty(outcome.PackageWarnings);
-        Assert.Equal("tazuo", ReadLocal("TazUO/TazUOLauncher.exe"));
+        Assert.Equal("tazuo", ReadLocal("TazUO/TazUOLauncher" + Exe));
         Assert.Equal("x", ReadLocal("TazUO/lib/x.dll"));
         Assert.Equal("kept", ReadLocal("TazUO/Profiles/mine.json"));
         Assert.Equal("2.0.0", _launcher.FeedState.GetInstalledVersion(PackageRole.Client));
@@ -383,14 +386,14 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
         });
         using var session = launcher.OpenSession();
         Publish(("art.mul", "art"));
-        var package = _server.AddPackage(PackageRole.Client, "1.0.0", TestPackages.Zip(("ClassicUO.exe", "cuo")));
+        var package = _server.AddPackage(PackageRole.Client, "1.0.0", TestPackages.Zip(("ClassicUO" + Exe, "cuo")));
         _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [package]), _key);
 
         var outcome = await launcher.Workflow.DownloadAsync(session, cancellationToken: TestToken);
 
         Assert.Equal(UpdateResult.Finished, outcome.Result);
         Assert.Empty(outcome.PackageWarnings);
-        Assert.Equal("cuo", await File.ReadAllTextAsync(Path.Combine(launcher.InstallFolder.Root, "ClassicUO", "ClassicUO.exe"), TestToken));
+        Assert.Equal("cuo", await File.ReadAllTextAsync(Path.Combine(launcher.InstallFolder.Root, "ClassicUO", "ClassicUO" + Exe), TestToken));
         Assert.False(Directory.Exists(Path.Combine(launcher.InstallFolder.Root, "ClassicUO", "Profiles")));
     }
 
