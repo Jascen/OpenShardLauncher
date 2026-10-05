@@ -1,3 +1,4 @@
+using OpenShardLauncher.Server.Feed;
 using OpenShardLauncher.Server.Hosting;
 
 // A plain static host for a feed folder produced by the Publisher. It builds, hashes and signs nothing; any static
@@ -8,6 +9,7 @@ builder.AddOpenShardLauncherServer();
 
 var app = builder.Build();
 app.UseOpenShardLauncherFeed();
+app.MapLatestPackage();
 app.MapHealthChecks("/health");
 
 app.Run();
