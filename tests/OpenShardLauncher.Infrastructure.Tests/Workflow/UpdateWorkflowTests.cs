@@ -29,7 +29,7 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
         _launcher = new TestLauncher(_server.Url, [_key.PublicKey], configure: o => o with
         {
             KeepLocalPatterns = ["*.cfg"],
-            TazUO = new TazUOOptions { Profiles = [new TazUOProfile { Id = "shard", Name = "Shard", ClientVersion = "7.0.15.1" }] },
+            Client = new ClientOptions { TazUOProfiles = [new TazUOProfile { Id = "shard", Name = "Shard", ClientVersion = "7.0.15.1" }] },
         });
         _session = _launcher.OpenSession();
     }
@@ -238,7 +238,7 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
     public async Task UntrustedManifest_Warns_ButGameFilesStillUpdate()
     {
         Publish(("art.mul", "art"));
-        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [TazUO("2.0.0")])); // No signature
+        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [ClientPackage("2.0.0")])); // No signature
 
         var outcome = await _launcher.Workflow.DownloadAsync(_session, cancellationToken: TestToken);
 
@@ -248,13 +248,13 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task TazUO_MissingIsOffered_AndAnOlderManifestIsRefused()
+    public async Task Client_MissingIsOffered_AndAnOlderManifestIsRefused()
     {
         Publish();
-        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [TazUO("2.0.0")]), _key);
+        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [ClientPackage("2.0.0")]), _key);
 
         var missing = await _launcher.Workflow.CheckAsync(_session, cancellationToken: TestToken);
-        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [TazUO("1.0.0")]), _key);
+        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [ClientPackage("1.0.0")]), _key);
         var rollback = await _launcher.Workflow.CheckAsync(_session, cancellationToken: TestToken);
 
         Assert.Equal(UpdateResult.PackagesReady, missing.Result);
@@ -263,12 +263,12 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task TazUO_InstalledAtTheOfferedVersion_IsUpToDate()
+    public async Task Client_InstalledAtTheOfferedVersion_IsUpToDate()
     {
         Publish();
-        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [TazUO("2.0.0")]), _key);
+        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [ClientPackage("2.0.0")]), _key);
         _launcher.Game.Installed = true;
-        _launcher.FeedState.SetInstalledVersion(PackageRole.TazUO, "2.0.0");
+        _launcher.FeedState.SetInstalledVersion(PackageRole.Client, "2.0.0");
 
         var outcome = await _launcher.Workflow.CheckAsync(_session, cancellationToken: TestToken);
 
@@ -277,10 +277,10 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task TazUO_IsInstalledByTheDownload_WithItsVersionAndProfiles()
+    public async Task Client_IsInstalledByTheDownload_WithItsVersionAndTazUOProfiles()
     {
         Publish(("art.mul", "art"));
-        var package = _server.AddPackage(PackageRole.TazUO, "2.0.0", TestPackages.Zip(("TazUOLauncher.exe", "tazuo"), ("lib/x.dll", "x")));
+        var package = _server.AddPackage(PackageRole.Client, "2.0.0", TestPackages.Zip(("TazUOLauncher.exe", "tazuo"), ("lib/x.dll", "x")));
         _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [package]), _key);
         WriteLocal("TazUO/Profiles/mine.json", "kept"); // A player's own profile isn't in the zip
         var progress = new Recorder<UpdateProgress>();
@@ -292,27 +292,61 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
         Assert.Equal("tazuo", ReadLocal("TazUO/TazUOLauncher.exe"));
         Assert.Equal("x", ReadLocal("TazUO/lib/x.dll"));
         Assert.Equal("kept", ReadLocal("TazUO/Profiles/mine.json"));
-        Assert.Equal("2.0.0", _launcher.FeedState.GetInstalledVersion(PackageRole.TazUO));
+        Assert.Equal("2.0.0", _launcher.FeedState.GetInstalledVersion(PackageRole.Client));
         Assert.Contains("\"ultimaonlinedirectory\"", ReadLocal("TazUO/Profiles/Settings/shard.json"));
         Assert.Contains("\"Shard\"", ReadLocal("TazUO/Profiles/shard.json"));
-        Assert.Contains(progress.Values, p => p.Phase == UpdatePhase.InstallingTazUO && p.BytesTotal == package.Size);
+        Assert.Contains(progress.Values, p => p.Phase == UpdatePhase.InstallingClient && p.BytesTotal == package.Size);
         Assert.False(Directory.Exists(_launcher.InstallFolder.PackagesFolder) && Directory.EnumerateFileSystemEntries(_launcher.InstallFolder.PackagesFolder).Any());
     }
 
     [Fact]
-    public async Task TazUO_UnsafeZip_IsRefused_WithAWarning_AndGameFilesStillUpdate()
+    public async Task Client_UnsafeZip_IsRefused_WithAWarning_AndGameFilesStillUpdate()
     {
         Publish(("art.mul", "art"));
-        var package = _server.AddPackage(PackageRole.TazUO, "2.0.0", TestPackages.Zip(("TazUOLauncher.exe", "tazuo"), ("../../escaped.txt", "x")));
+        var package = _server.AddPackage(PackageRole.Client, "2.0.0", TestPackages.Zip(("TazUOLauncher.exe", "tazuo"), ("../../escaped.txt", "x")));
         _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [package]), _key);
 
         var outcome = await _launcher.Workflow.DownloadAsync(_session, cancellationToken: TestToken);
 
         Assert.Equal(UpdateResult.Finished, outcome.Result);
-        Assert.Equal([PackageWarning.TazUOInstallFailed], outcome.PackageWarnings);
+        Assert.Equal([PackageWarning.ClientInstallFailed], outcome.PackageWarnings);
         Assert.Equal("art", ReadLocal("art.mul"));
         Assert.False(File.Exists(LocalPath("TazUO/TazUOLauncher.exe")));
-        Assert.Null(_launcher.FeedState.GetInstalledVersion(PackageRole.TazUO));
+        Assert.Null(_launcher.FeedState.GetInstalledVersion(PackageRole.Client));
+    }
+
+    [Fact]
+    public async Task Client_InTheGameFiles_WithoutAPackage_IsUpToDate()
+    {
+        Publish(("ClassicUO/ClassicUO.exe", "cuo"));
+        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, []), _key);
+        WriteLocal("ClassicUO/ClassicUO.exe", "cuo");
+        _launcher.Game.Installed = true;
+
+        var outcome = await _launcher.Workflow.CheckAsync(_session, cancellationToken: TestToken);
+
+        Assert.Equal(UpdateResult.Finished, outcome.Result);
+        Assert.Empty(outcome.PackageWarnings);
+    }
+
+    [Fact]
+    public async Task Client_WithoutTazUOProfiles_GetsNoProfileFiles()
+    {
+        using var launcher = new TestLauncher(_server.Url, [_key.PublicKey], configure: o => o with
+        {
+            Client = new ClientOptions { InstallFolder = "ClassicUO", ExecutableName = "ClassicUO", Arguments = ["-uopath", "{GameFolder}"] },
+        });
+        using var session = launcher.OpenSession();
+        Publish(("art.mul", "art"));
+        var package = _server.AddPackage(PackageRole.Client, "1.0.0", TestPackages.Zip(("ClassicUO.exe", "cuo")));
+        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [package]), _key);
+
+        var outcome = await launcher.Workflow.DownloadAsync(session, cancellationToken: TestToken);
+
+        Assert.Equal(UpdateResult.Finished, outcome.Result);
+        Assert.Empty(outcome.PackageWarnings);
+        Assert.Equal("cuo", await File.ReadAllTextAsync(Path.Combine(launcher.InstallFolder.Root, "ClassicUO", "ClassicUO.exe"), TestToken));
+        Assert.False(Directory.Exists(Path.Combine(launcher.InstallFolder.Root, "ClassicUO", "Profiles")));
     }
 
     // Over plain http to another machine is covered by FeedVerifierTests: the test server only listens on loopback.
@@ -361,10 +395,10 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
         return entries;
     }
 
-    private static PackageEntry TazUO(string version)
+    private static PackageEntry ClientPackage(string version)
     {
-        var file = PackageFileName.Format(PackageRole.TazUO, version, TestLauncher.Platform);
-        return new PackageEntry(PackageRole.TazUO, version, TestLauncher.Platform, file, new string('a', 64), 1);
+        var file = PackageFileName.Format(PackageRole.Client, version, TestLauncher.Platform);
+        return new PackageEntry(PackageRole.Client, version, TestLauncher.Platform, file, new string('a', 64), 1);
     }
 
     private string LocalPath(string name) => Path.Combine(_launcher.InstallFolder.Root, name);

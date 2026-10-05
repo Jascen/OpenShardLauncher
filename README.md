@@ -1,12 +1,12 @@
 # OpenShardLauncher
 
-A game launcher for Ultima Online shards, with its own update feed. Players get one small window that downloads and verifies the shard's game files and then starts the game (through the TazUO client launcher). Operators publish updates from their own machine with a command-line tool and upload the result to any static web host.
+A game launcher for Ultima Online shards, with its own update feed. Players get one small window that downloads and verifies the shard's game files and then starts the game client (the TazUO launcher by default, or any pre-configured TazUO/ClassicUO exe). Operators publish updates from their own machine with a command-line tool and upload the result to any static web host.
 
 It's a rewrite of [Memento-FileUpdater](https://github.com/Jascen/Memento-FileUpdater) (.NET 10, Avalonia 12) and is meant to be forked: a shard changes a few configuration files and art, never C# code.
 
 | Part | What it does |
 |---|---|
-| **Launcher** (`src/OpenShardLauncher.Client`) | Compares the install folder with the signed file list, downloads what differs (resuming, hash-checked), deletes what the feed removed, installs/updates TazUO and updates itself. Windows, Linux and macOS. |
+| **Launcher** (`src/OpenShardLauncher.Client`) | Compares the install folder with the signed file list, downloads what differs (resuming, hash-checked), deletes what the feed removed, installs/updates the game client and updates itself. Windows, Linux and macOS. |
 | **Publisher** (`tools/OpenShardLauncher.Publisher`) | Builds and signs the whole feed locally: `files.json`, content-addressed blobs, package zips and their manifest. [README](tools/OpenShardLauncher.Publisher/README.md) |
 | **Feed server** (`src/OpenShardLauncher.Server`) | A plain static host for the feed folder. Optional: nginx, a CDN or object storage work just as well. [README](src/OpenShardLauncher.Server/README.md) |
 
@@ -86,7 +86,7 @@ A fork changes **only these files**. Everything named `OpenShardLauncher.*` (pro
 
 | File | What you change |
 |---|---|
-| `src/OpenShardLauncher.Client/Resources/launcher.json` | `Title`, `Subtitle`, `UpdateUrl`, `TrustedPublicKeys`, `AllowUnsignedFeed`, nav `Links`, `KeepLocalPatterns`, `AppDataFolderName`, `DefaultInstallFolder`, `TazUO` (`Enabled`, `InstallFolder`, `ExecutableName`, `Profiles`), `PackageCheckInterval` |
+| `src/OpenShardLauncher.Client/Resources/launcher.json` | `Title`, `Subtitle`, `UpdateUrl`, `TrustedPublicKeys`, `AllowUnsignedFeed`, nav `Links`, `KeepLocalPatterns`, `AppDataFolderName`, `DefaultInstallFolder`, `Client` (`Enabled`, `InstallFolder`, `ExecutableName`, `Arguments`, `TazUOProfiles`), `PackageCheckInterval` |
 | `Directory.Build.props` | `<LauncherExeName>` (the exe players run), optionally `<LauncherIcon>` |
 | `src/OpenShardLauncher.Client/Themes/Branding.axaml` | Colors, brushes, fonts |
 | `src/OpenShardLauncher.Client/Assets/` | `background.png`, `play-button.png`, `progress-*.png` (keep each image's size) and `icon.ico` (a real .ico) |
@@ -113,11 +113,12 @@ Change only what you need: **a property you leave out keeps its default** (the u
   "KeepLocalPatterns": [ "*.cfg" ],            // files players change: downloaded only when missing, never replaced
   "AppDataFolderName": "MyShard",              // settings folder under AppData when the launcher folder isn't writable
   "DefaultInstallFolder": "Game",              // next to the exe, until the player picks another
-  "TazUO": {
+  "Client": {                                 // what Play starts
     "Enabled": true,
-    "InstallFolder": "TazUO",
-    "ExecutableName": "TazUOLauncher",
-    "Profiles": [                              // created in TazUO when missing; players' own changes are kept
+    "InstallFolder": "TazUO",                  // subfolder of the install folder; a client-*.zip package unpacks here
+    "ExecutableName": "TazUOLauncher",         // in InstallFolder; ".exe" is added on Windows
+    "Arguments": [],                           // passed to it; "{GameFolder}" and "{ClientFolder}" are replaced
+    "TazUOProfiles": [                         // TazUO launcher only: created when missing; players' own changes are kept
       { "Id": "myshard", "Name": "My Shard", "Ip": "play.example.com", "Port": 2593, "ClientVersion": "7.0.15.1" }
     ]
   },
@@ -125,9 +126,29 @@ Change only what you need: **a property you leave out keeps its default** (the u
 }
 ```
 
-Upstream defaults: title `OpenShardLauncher`, exe `OpenShardLauncher`, `UpdateUrl` `http://127.0.0.1:8080/`, **no keys**, `AllowUnsignedFeed` false, AppData folder `OpenShardLauncher`, one neutral TazUO profile `openshard-local` at `127.0.0.1:2593`. A fresh clone builds and starts, and then shows an error that it has no keys until you add one.
+Upstream defaults: title `OpenShardLauncher`, exe `OpenShardLauncher`, `UpdateUrl` `http://127.0.0.1:8080/`, **no keys**, `AllowUnsignedFeed` false, AppData folder `OpenShardLauncher`, the TazUO launcher in `Game/TazUO` with one neutral profile `openshard-local` at `127.0.0.1:2593`. A fresh clone builds and starts, and then shows an error that it has no keys until you add one.
 
-**Choose these once.** After players have your launcher, keep `<LauncherExeName>`, `AppDataFolderName` and each TazUO profile `Id`: self-update looks for an exe of the same name, and settings and profiles are found by those names. See [stable contracts](docs/self-update.md).
+**Choose these once.** After players have your launcher, keep `<LauncherExeName>`, `AppDataFolderName` and each `TazUOProfiles` `Id`: self-update looks for an exe of the same name, and settings and profiles are found by those names. See [stable contracts](docs/self-update.md).
+
+### Using another client (ClassicUO, TazUO without its launcher)
+
+The launcher doesn't need the TazUO launcher. Play starts `Client.ExecutableName` in `Client.InstallFolder`, wherever it came from:
+
+- **In the game files.** Put the client folder (e.g. `ClassicUO/` with a pre-configured `settings.json`) into `--source`. It updates like every other file. Add the client's own settings file to `KeepLocalPatterns` if players change it.
+- **As a package.** Publish it as `client-{version}.{rid}.zip` (one per platform). It is unpacked into `Client.InstallFolder` and updated when a newer version is published.
+
+Then set `ExecutableName`, pass connection settings with `Arguments` if the client isn't configured by its own files, and leave `TazUOProfiles` empty:
+
+```jsonc
+"Client": {
+  "InstallFolder": "ClassicUO",
+  "ExecutableName": "ClassicUO",
+  "Arguments": [ "-uopath", "{GameFolder}", "-ip", "play.example.com", "-port", "2593" ],
+  "TazUOProfiles": []
+}
+```
+
+With `Arguments` the client is started directly; without them it is started like a double-click (on macOS through `open`).
 
 ### Release-build warnings
 
@@ -161,7 +182,7 @@ publisher publish --source <game files> --packages <zips> --out <feed> --key <fe
 (`publisher` is `OpenShardLauncher.Publisher` from the release's `publisher-*.zip`, or `dotnet run --project tools/OpenShardLauncher.Publisher --`.)
 
 - `--source` is the folder players should end up with. Only changed files are hashed and copied. Removed files go into a signed `removed` list, so launchers delete exactly those (never the player's own files).
-- `--packages` holds `launcher-{version}.{rid}.zip` and `tazuo-{version}.{rid}.zip`. The newest per role and platform is published. Launcher zips come from the [release](#releasing-the-launcher) as-is.
+- `--packages` holds `launcher-{version}.{rid}.zip` and `client-{version}.{rid}.zip` (the game client: TazUO launcher, ClassicUO, ...). The newest per role and platform is published. Launcher zips come from the [release](#releasing-the-launcher) as-is.
 - The summary lists every **new** file name. Read it before uploading, so a private file (accounts, configs) doesn't slip out. `.publishignore` and default exclusions are in [ignore rules](docs/ignore-rules.md).
 - `publisher verify --feed <feed> --pub <feed-signing.pub.json>` checks a feed the way a launcher does.
 

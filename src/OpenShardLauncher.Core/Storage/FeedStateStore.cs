@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace OpenShardLauncher.Core.Storage;
 
 // What the launcher has seen from feeds, for rollback and downgrade protection: the last files.json version per
-// server, and per package role ("launcher", "tazuo") the installed version and the highest manifest version.
+// server, and per package role ("launcher", "client") the installed version and the highest manifest version.
 // feed-state.json in the launcher data folder. Thread-safe; every change is saved straight away.
 public sealed class FeedStateStore
 {

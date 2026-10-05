@@ -51,8 +51,8 @@ public sealed partial class SettingsViewModel : DialogViewModelBase<bool>
     // The unsigned-feed notice as a read-only line; hidden unless the launcher allows unsigned feeds.
     public SecurityNoticeViewModel SecurityNotice { get; }
 
-    // Only meaningful with TazUO, which is what Play starts.
-    public bool ShowWarnIfNotVerified => _options.TazUO.Enabled;
+    // Only meaningful with a client for Play to start.
+    public bool ShowWarnIfNotVerified => _options.Client.Enabled;
 
     // The placeholder: what an empty box means.
     public string DefaultServerUrl => _settings.ServerEndpoint.Default.AbsoluteUri;

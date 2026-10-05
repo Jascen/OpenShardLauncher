@@ -7,7 +7,7 @@ public enum LauncherState
 {
     Idle, // Nothing is known about the files: no check yet, verify on launch is off, or a check was cancelled
     Working, // A check, a download or a launcher update is running
-    UpdatesReady, // Files (or removals, or the TazUO launcher) are waiting for the player to click Download
+    UpdatesReady, // Files (or removals, or the game client) are waiting for the player to click Download
     Verified, // Every file was checked against the server and any updates downloaded
     Failed, // The last run failed or couldn't download some files, so Retry is offered
 }

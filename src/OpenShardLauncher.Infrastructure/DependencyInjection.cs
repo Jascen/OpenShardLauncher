@@ -40,9 +40,9 @@ public static class DependencyInjection
         return services;
     }
 
-    // Registers the Core use cases (UpdateWorkflow and its stages, PackageCheckService, the TazUO installer and the
+    // Registers the Core use cases (UpdateWorkflow and its stages, PackageCheckService, the client installer and the
     // launcher's self-update) on top of the infrastructure. The composition root also registers an IGameLauncher
-    // (TazUOLauncher) and the InstalledLauncher.
+    // (ClientLauncher) and the InstalledLauncher.
     public static IServiceCollection AddOpenShardLauncherWorkflow(this IServiceCollection services, Action<WorkflowOptions>? configure = null)
     {
         var options = new WorkflowOptions();
@@ -51,7 +51,8 @@ public static class DependencyInjection
         services.TryAddSingleton<CompareStage>();
         services.TryAddSingleton<DownloadStage>();
         services.TryAddSingleton<PackageCheckService>();
-        services.TryAddSingleton<TazUOInstaller>();
+        services.TryAddSingleton<ClientInstaller>();
+        services.TryAddSingleton<TazUOProfileWriter>();
         services.TryAddSingleton<UpdateWorkflow>();
         services.TryAddSingleton<LauncherSelfUpdateService>();
         services.TryAddSingleton<ISelfUpdater, SelfUpdater>();

@@ -109,11 +109,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public bool CanPlay => !IsBusy && !DownloadsReady && IsGameInstalled;
 
-    // The center button downloads waiting updates first, then becomes the play button. Without TazUO it only appears to
+    // The center button downloads waiting updates first, then becomes the play button. Without a client it only appears to
     // download updates.
     public string MainButtonText => UiText.Get(DownloadsReady ? StringKeys.DownloadButton : StringKeys.PlayButton);
 
-    public bool IsMainButtonVisible => DownloadsReady || _options.TazUO.Enabled;
+    public bool IsMainButtonVisible => DownloadsReady || _options.Client.Enabled;
 
     // Every command that runs a check, a download or a launcher update, for Cancel.
     private IEnumerable<IAsyncRelayCommand> RunCommands =>

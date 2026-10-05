@@ -231,15 +231,16 @@ public sealed class FeedPublisherTests : IDisposable
         _feed.WriteSource("art.mul", "art");
         WriteZip("launcher-1.0.0.win-x64.zip", "old");
         WriteZip("launcher-1.1.0.win-x64.zip", "new");
-        WriteZip("tazuo-3.0.0.linux-x64.zip", "tazuo");
+        WriteZip("client-3.0.0.linux-x64.zip", "client");
+        WriteZip("tazuo-3.0.0.linux-x64.zip", "not a role"); // Roles are only launcher and client
         File.WriteAllText(Path.Combine(_feed.Packages, "notes.zip"), "not a package");
 
         var summary = _feed.Publish();
 
         var manifestBytes = File.ReadAllBytes(Path.Combine(_feed.Out, FeedLayout.ManifestPath));
         var manifest = PackageManifest.Parse(manifestBytes);
-        Assert.Equal(["launcher-1.1.0.win-x64.zip", "tazuo-3.0.0.linux-x64.zip"], manifest.Packages.Select(p => p.File));
-        Assert.Equal(["notes.zip"], summary.IgnoredPackages);
+        Assert.Equal(["client-3.0.0.linux-x64.zip", "launcher-1.1.0.win-x64.zip"], manifest.Packages.Select(p => p.File));
+        Assert.Equal(["notes.zip", "tazuo-3.0.0.linux-x64.zip"], summary.IgnoredPackages.Order());
         Assert.Equal(SignatureStatus.Valid, VerifySignature(FeedLayout.ManifestPath, FeedLayout.ManifestSignaturePath));
         Assert.True(FeedVerifier.Verify(_feed.Out, [_feed.Key.PublicKey]).IsValid);
 

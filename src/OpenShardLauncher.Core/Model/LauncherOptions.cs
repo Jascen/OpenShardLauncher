@@ -31,7 +31,7 @@ public sealed record LauncherOptions
     // Subfolder next to the launcher exe used as the install folder until the player picks another.
     public string DefaultInstallFolder { get; set; } = "Game";
 
-    public TazUOOptions TazUO { get; set; } = new();
+    public ClientOptions Client { get; set; } = new();
 
     public TimeSpan PackageCheckInterval { get; set; } = TimeSpan.FromHours(4);
 }
@@ -48,18 +48,29 @@ public sealed record NavLink
     public bool IsVerify => string.Equals(Url, VerifyTarget, StringComparison.OrdinalIgnoreCase);
 }
 
-public sealed record TazUOOptions
+// The game client Play starts: the TazUO launcher, or a pre-configured TazUO/ClassicUO exe. It comes from a `client`
+// package in the feed, or is simply part of the game files.
+public sealed record ClientOptions
 {
+    // Placeholders replaced in Arguments.
+    public const string GameFolderPlaceholder = "{GameFolder}"; // The install folder (the game files)
+    public const string ClientFolderPlaceholder = "{ClientFolder}"; // The folder below
+
     public bool Enabled { get; set; } = true;
 
-    // Subfolder of the install folder the TazUO launcher is installed into.
+    // Subfolder of the install folder the client is in. A `client` package is unpacked into it.
     public string InstallFolder { get; set; } = "TazUO";
 
+    // In InstallFolder, without ".exe" (added on Windows).
     public string ExecutableName { get; set; } = "TazUOLauncher";
 
-    // Created in the TazUO launcher once it is installed, unless a profile with that Id already exists (players' own
-    // changes in the TazUO launcher are kept).
-    public IReadOnlyList<TazUOProfile> Profiles { get; set; } = [];
+    // Passed to the executable, e.g. ["-uopath", "{GameFolder}", "-ip", "play.example.com", "-port", "2593"] for
+    // ClassicUO. Empty: started without arguments.
+    public IReadOnlyList<string> Arguments { get; set; } = [];
+
+    // Only when the client is the TazUO launcher: created in it unless a profile with that Id already exists (players'
+    // own changes in the TazUO launcher are kept).
+    public IReadOnlyList<TazUOProfile> TazUOProfiles { get; set; } = [];
 }
 
 // A TazUO launcher profile for this shard. Id is also the file name TazUO stores it under, so keep it stable once

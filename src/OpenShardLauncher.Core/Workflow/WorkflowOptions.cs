@@ -9,6 +9,6 @@ public sealed class WorkflowOptions
     // Files compared (and hashed when not cached) at the same time.
     public int CompareParallelism { get; set; } = 4;
 
-    // Caps for unpacking package zips (TazUO and the launcher's own update).
+    // Caps for unpacking package zips (the client and the launcher's own update).
     public Packages.SafeZipLimits PackageLimits { get; set; } = Packages.SafeZipLimits.Default;
 }

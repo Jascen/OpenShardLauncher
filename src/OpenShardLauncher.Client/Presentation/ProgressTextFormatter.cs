@@ -16,9 +16,9 @@ public static class ProgressTextFormatter
         UpdatePhase.Downloading => new(StringKeys.DownloadingFiles,
             progress.FilesDone, progress.FilesTotal, Units.Speed(progress.BytesPerSecond)),
         UpdatePhase.RemovingFiles => new(StringKeys.RemovingFiles, progress.FilesDone, progress.FilesTotal),
-        UpdatePhase.InstallingTazUO when progress.BytesTotal > 0 =>
-            new(StringKeys.DownloadingTazUO, Units.Bytes(progress.BytesDone), Units.Bytes(progress.BytesTotal)),
-        UpdatePhase.InstallingTazUO => new(StringKeys.InstallingTazUO),
+        UpdatePhase.InstallingClient when progress.BytesTotal > 0 =>
+            new(StringKeys.DownloadingClient, Units.Bytes(progress.BytesDone), Units.Bytes(progress.BytesTotal)),
+        UpdatePhase.InstallingClient => new(StringKeys.InstallingClient),
         UpdatePhase.UpdatingLauncher when progress.BytesTotal > 0 =>
             new(StringKeys.DownloadingLauncher, Units.Bytes(progress.BytesDone), Units.Bytes(progress.BytesTotal)),
         UpdatePhase.UpdatingLauncher => new(StringKeys.UpdatingLauncher),
