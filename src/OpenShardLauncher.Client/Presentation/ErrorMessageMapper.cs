@@ -40,10 +40,12 @@ public static class ErrorMessageMapper
     public static LocalizedText Map(PackageWarning warning) => warning switch
     {
         PackageWarning.ManifestUnreachable => new(StringKeys.ManifestUnreachableWarning),
+        PackageWarning.ManifestInvalid => new(StringKeys.ManifestInvalidWarning),
         PackageWarning.ManifestUntrusted => new(StringKeys.ManifestUntrustedWarning),
         PackageWarning.ManifestUpdating => new(StringKeys.ManifestUpdatingWarning),
         PackageWarning.PackagesNotConfigured => new(StringKeys.PackagesNotConfiguredWarning),
         PackageWarning.ClientInstallFailed => new(StringKeys.ClientInstallFailedWarning),
+        PackageWarning.ClientUnavailable => new(StringKeys.ClientUnavailableWarning),
         PackageWarning.SelfUpdateFailed => new(StringKeys.SelfUpdateFailedWarning),
         _ => throw new ArgumentOutOfRangeException(nameof(warning), warning, null),
     };

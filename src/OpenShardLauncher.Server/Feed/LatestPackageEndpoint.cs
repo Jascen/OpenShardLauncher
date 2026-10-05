@@ -38,7 +38,7 @@ public static partial class LatestPackageEndpoint
         var path = Path.Combine(feedRoot, FeedLayout.ManifestPath);
         try
         {
-            return File.Exists(path) ? PackageManifest.Parse(File.ReadAllBytes(path)) : null;
+            return File.Exists(path) ? PackageManifest.Parse(File.ReadAllBytes(path), problem => LogInvalidEntry(logger, path, problem)) : null;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
         {
@@ -49,4 +49,7 @@ public static partial class LatestPackageEndpoint
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Could not read {Manifest} for a /latest link")]
     private static partial void LogUnreadable(ILogger logger, Exception exception, string manifest);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "{Manifest} {Problem}; skipping it for /latest links")]
+    private static partial void LogInvalidEntry(ILogger logger, string manifest, string problem);
 }

@@ -23,10 +23,12 @@ public enum UpdateError
 public enum PackageWarning
 {
     ManifestUnreachable,
+    ManifestInvalid, // Fetched and trusted, but not a valid manifest
     ManifestUntrusted,
     ManifestUpdating,
     PackagesNotConfigured, // No trusted keys, so packages are disabled
     ClientInstallFailed,
+    ClientUnavailable, // Not installed, and the server offers none for this platform
     SelfUpdateFailed,
 }
 

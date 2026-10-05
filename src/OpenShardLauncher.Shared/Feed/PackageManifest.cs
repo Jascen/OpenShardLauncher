@@ -24,7 +24,13 @@ public sealed record PackageManifest(DateTimeOffset Generated, IReadOnlyList<Pac
     public byte[] ToJsonBytes() => JsonSerializer.SerializeToUtf8Bytes(this, FeedJsonContext.Default.PackageManifest);
 
     // Only trust the result after the bytes' signature has been checked (or AllowUnsignedFeed applied)
-    public static PackageManifest Parse(ReadOnlySpan<byte> json)
+    public static PackageManifest Parse(ReadOnlySpan<byte> json) => Parse(json, onInvalidEntry: null);
+
+    // Like Parse, but an entry whose file name doesn't match its role, version and platform, or with an invalid hash or
+    // size, is left out and described to onInvalidEntry instead of failing the whole manifest. The launcher uses this so
+    // one bad entry (a stale package, or a role this launcher doesn't know) doesn't hide every other package. The
+    // document itself must still be valid.
+    public static PackageManifest Parse(ReadOnlySpan<byte> json, Action<string>? onInvalidEntry)
     {
         PackageManifest? manifest;
         try
@@ -41,16 +47,31 @@ public sealed record PackageManifest(DateTimeOffset Generated, IReadOnlyList<Pac
             throw new InvalidDataException($"{FeedLayout.ManifestFileName} is empty.");
         }
 
+        var packages = new List<PackageEntry>(manifest.Packages.Count);
         foreach (var package in manifest.Packages)
         {
-            var named = PackageFileName.TryParse(package.File, out var role, out var version, out var rid)
-                && role == package.Role && rid == package.Rid && version.ToString() == package.Version;
-            if (!named || !Sha256Hex.IsValid(package.Sha256) || package.Size < 0)
+            if (IsValid(package))
             {
-                throw new InvalidDataException($"{FeedLayout.ManifestFileName} has an invalid entry '{package.File}'.");
+                packages.Add(package);
+                continue;
             }
+
+            var problem = $"has an invalid entry '{package?.File}'";
+            if (onInvalidEntry is null)
+            {
+                throw new InvalidDataException($"{FeedLayout.ManifestFileName} {problem}.");
+            }
+
+            onInvalidEntry(problem);
         }
 
-        return manifest;
+        return packages.Count == manifest.Packages.Count ? manifest : manifest with { Packages = packages };
     }
+
+    // A null element isn't caught by the serializer's nullable checks
+    private static bool IsValid(PackageEntry? package) =>
+        package is not null
+        && PackageFileName.TryParse(package.File, out var role, out var version, out var rid)
+        && role == package.Role && rid == package.Rid && version.ToString() == package.Version
+        && Sha256Hex.IsValid(package.Sha256) && package.Size >= 0;
 }

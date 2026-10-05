@@ -42,6 +42,7 @@ internal sealed class TestLauncher : IDisposable
         services.AddSingleton(dataFolder);
         services.AddSingleton<FeedStateStore>();
         services.AddSingleton(new PlatformInfo(Platform));
+        Game = new FakeGameLauncher(options.Client);
         services.AddSingleton<IGameLauncher>(Game);
         LauncherFolder = Path.Combine(_root.FullName, "launcher");
         Directory.CreateDirectory(LauncherFolder);
@@ -82,7 +83,7 @@ internal sealed class TestLauncher : IDisposable
 
     public FeedStateStore FeedState => _services.GetRequiredService<FeedStateStore>();
 
-    public FakeGameLauncher Game { get; } = new();
+    public FakeGameLauncher Game { get; }
 
     public InstallSession OpenSession() => Workflow.OpenSession(InstallFolder.Root);
 
@@ -93,12 +94,16 @@ internal sealed class TestLauncher : IDisposable
     }
 }
 
-// Says whether the client is installed as the test sets it; starting it does nothing.
-internal sealed class FakeGameLauncher : IGameLauncher
+// Says whether the client is installed as the test sets it, otherwise whether its executable exists (like
+// ClientLauncher); starting it does nothing.
+internal sealed class FakeGameLauncher(ClientOptions client) : IGameLauncher
 {
-    public bool Installed { get; set; }
+    public bool? Installed { get; set; }
 
-    public bool IsInstalled(string installFolder) => Installed;
+    public bool IsInstalled(string installFolder) =>
+        Installed ?? (client.Enabled
+            && new InstallFolder(installFolder).TryGetClientFolder(client, out var folder)
+            && File.Exists(InstallFolder.ClientExecutablePath(folder, client)));
 
     public void Start(string installFolder)
     {

@@ -21,6 +21,7 @@ public sealed class UpdateWorkflow(
     CompareStage compare,
     DownloadStage download,
     PackageCheckService packages,
+    IGameLauncher game,
     ClientInstaller clientInstaller,
     TazUOProfileWriter tazUOProfiles,
     ILoggerFactory loggerFactory)
@@ -100,7 +101,8 @@ public sealed class UpdateWorkflow(
         {
             Result = result,
             IgnoredItems = plan.Filter.IgnoredItems,
-            PackageWarnings = packageUpdates.Warnings,
+            // With files still to download, the client may be among them
+            PackageWarnings = result == UpdateResult.Finished ? WithClientCheck(session, packageUpdates.Warnings) : packageUpdates.Warnings,
             PendingDownloads = compared.Differences.Count,
             PendingRemovals = pendingRemovals,
             FeedUnsigned = list.Trust == FeedTrust.Unsigned,
@@ -153,7 +155,7 @@ public sealed class UpdateWorkflow(
             Result = UpdateResult.Finished,
             FailedFiles = failed,
             IgnoredItems = plan.Filter.IgnoredItems,
-            PackageWarnings = packageWarnings,
+            PackageWarnings = WithClientCheck(session, packageWarnings),
             FeedUnsigned = list.Trust == FeedTrust.Unsigned,
         };
     }
@@ -224,6 +226,19 @@ public sealed class UpdateWorkflow(
 
         tazUOProfiles.EnsureProfiles(session.Folder);
         return warnings;
+    }
+
+    // Everything is up to date but there is still no client to start (no package for this platform, and none in the
+    // game files): say so, unless another package warning already explains why.
+    private IReadOnlyList<PackageWarning> WithClientCheck(InstallSession session, IReadOnlyList<PackageWarning> warnings)
+    {
+        if (!options.Client.Enabled || warnings.Count > 0 || game.IsInstalled(session.Folder.Root))
+        {
+            return warnings;
+        }
+
+        _logger.LogWarning("The client isn't installed and the server offers none for this platform; the game can't start");
+        return [PackageWarning.ClientUnavailable];
     }
 
     // Deletes what the feed removed. A file that is already gone is fine; one that can't be deleted is reported like a

@@ -107,10 +107,12 @@ public static class StringKeys
 
     // Package warnings
     public const string ManifestUnreachableWarning = nameof(ManifestUnreachableWarning);
+    public const string ManifestInvalidWarning = nameof(ManifestInvalidWarning);
     public const string ManifestUntrustedWarning = nameof(ManifestUntrustedWarning);
     public const string ManifestUpdatingWarning = nameof(ManifestUpdatingWarning);
     public const string PackagesNotConfiguredWarning = nameof(PackagesNotConfiguredWarning);
     public const string ClientInstallFailedWarning = nameof(ClientInstallFailedWarning);
+    public const string ClientUnavailableWarning = nameof(ClientUnavailableWarning);
     public const string SelfUpdateFailedWarning = nameof(SelfUpdateFailedWarning);
 
     // Launcher update errors

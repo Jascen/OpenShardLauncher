@@ -53,6 +53,7 @@ public sealed class PackageCheckService(
                 UpdateError.FeedUntrusted or UpdateError.UnsignedFeedNotDefaultServer or UpdateError.UnsignedFeedInsecure =>
                     Warn(PackageWarning.ManifestUntrusted),
                 UpdateError.FeedUpdating => Warn(PackageWarning.ManifestUpdating),
+                UpdateError.BadData => Warn(PackageWarning.ManifestInvalid),
                 _ => Warn(PackageWarning.ManifestUnreachable),
             };
         }
