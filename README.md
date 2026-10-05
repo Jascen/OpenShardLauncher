@@ -10,6 +10,8 @@ It's a rewrite of [Memento-FileUpdater](https://github.com/Jascen/Memento-FileUp
 | **Publisher** (`tools/OpenShardLauncher.Publisher`) | Builds and signs the whole feed locally: `files.json`, content-addressed blobs, package zips and their manifest. [README](tools/OpenShardLauncher.Publisher/README.md) |
 | **Feed server** (`src/OpenShardLauncher.Server`) | A plain static host for the feed folder. Optional: nginx, a CDN or object storage work just as well. [README](src/OpenShardLauncher.Server/README.md) |
 
+Despite the project name `OpenShardLauncher.Client`, "client" everywhere else in these docs and in `launcher.json` means the game client the launcher starts.
+
 **Security model.** The feed is signed with an ECDSA P-256 key that stays on the operator's machine. The launcher only trusts the public keys compiled into it, so neither the web server, a mirror nor someone on the network can change game files or push a launcher update. Details: [feed format](docs/feed-format.md), [self-update and stable contracts](docs/self-update.md), [ignore rules](docs/ignore-rules.md).
 
 Licence: [MIT](LICENSE).
@@ -94,7 +96,7 @@ A fork changes **only these files**. Everything named `OpenShardLauncher.*` (pro
 
 ### launcher.json
 
-Change only what you need: **a property you leave out keeps its default** (the upstream values below). Comments and trailing commas are allowed.
+Change only what you need: **a property you leave out keeps its default** (see upstream defaults below; `TazUOProfiles` defaults to an empty list, the `openshard-local` profile exists only because the upstream file lists it). Comments and trailing commas are allowed.
 
 ```jsonc
 {
@@ -114,7 +116,7 @@ Change only what you need: **a property you leave out keeps its default** (the u
   "AppDataFolderName": "MyShard",              // settings folder under AppData when the launcher folder isn't writable
   "DefaultInstallFolder": "Game",              // next to the exe, until the player picks another
   "Client": {                                 // what Play starts
-    "Enabled": true,
+    "Enabled": true,                           // false: no client is installed, set up or started by Play
     "InstallFolder": "TazUO",                  // subfolder of the install folder; a client-*.zip package unpacks here
     "ExecutableName": "TazUOLauncher",         // in InstallFolder; ".exe" is added on Windows
     "Arguments": [],                           // passed to it; "{GameFolder}" and "{ClientFolder}" are replaced
@@ -137,7 +139,7 @@ The launcher doesn't need the TazUO launcher. Play starts `Client.ExecutableName
 - **In the game files.** Put the client folder (e.g. `ClassicUO/` with a pre-configured `settings.json`) into `--source`. It updates like every other file. Add the client's own settings file to `KeepLocalPatterns` if players change it.
 - **As a package.** Publish it as `client-{version}.{rid}.zip` (one per platform). It is unpacked into `Client.InstallFolder` and updated when a newer version is published.
 
-Then set `ExecutableName`, pass connection settings with `Arguments` if the client isn't configured by its own files, and leave `TazUOProfiles` empty:
+Then set `ExecutableName`, pass connection settings with `Arguments` if the client isn't configured by its own files, and set `TazUOProfiles` to an empty list. The launcher doesn't check which client it is: any profiles listed are written as `Profiles/<id>.json` files into `Client.InstallFolder`. In `launcher.local.json` an override of `Client` without `"TazUOProfiles": []` keeps the upstream profile, because objects are merged:
 
 ```jsonc
 "Client": {
@@ -182,7 +184,7 @@ publisher publish --source <game files> --packages <zips> --out <feed> --key <fe
 (`publisher` is `OpenShardLauncher.Publisher` from the release's `publisher-*.zip`, or `dotnet run --project tools/OpenShardLauncher.Publisher --`.)
 
 - `--source` is the folder players should end up with. Only changed files are hashed and copied. Removed files go into a signed `removed` list, so launchers delete exactly those (never the player's own files).
-- `--packages` holds `launcher-{version}.{rid}.zip` and `client-{version}.{rid}.zip` (the game client: TazUO launcher, ClassicUO, ...). The newest per role and platform is published. Launcher zips come from the [release](#releasing-the-launcher) as-is.
+- `--packages` holds `launcher-{version}.{rid}.zip` and `client-{version}.{rid}.zip` (the game client: TazUO launcher, TazUO, ClassicUO, ...). The newest per role and platform is published. Launcher zips come from the [release](#releasing-the-launcher) as-is.
 - The summary lists every **new** file name. Read it before uploading, so a private file (accounts, configs) doesn't slip out. `.publishignore` and default exclusions are in [ignore rules](docs/ignore-rules.md).
 - `publisher verify --feed <feed> --pub <feed-signing.pub.json>` checks a feed the way a launcher does.
 
