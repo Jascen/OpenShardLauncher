@@ -23,7 +23,9 @@ public sealed class FeedServerFactory : WebApplicationFactory<Program>
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        if (disposing)
+        // WebApplicationFactory.Dispose can call this twice
+        _feed.Refresh();
+        if (disposing && _feed.Exists)
         {
             _feed.Delete(recursive: true);
         }
