@@ -13,7 +13,7 @@ Nothing has been released yet, so everything here can still change. **After the 
 
 ## Exe name
 
-The client's `AssemblyName` is `<LauncherExeName>` (default `OpenShardLauncher`), so the exe is `OpenShardLauncher.exe` on Windows and `OpenShardLauncher` on Linux and macOS. A launcher package must have an exe of the **current** name at the **root of the zip**; a package without one is rejected before anything is changed. A fork that already has players keeps its exe name for good.
+The launcher project's (`OpenShardLauncher.Client`) `AssemblyName` is `<LauncherExeName>` (default `OpenShardLauncher`), so the exe is `OpenShardLauncher.exe` on Windows and `OpenShardLauncher` on Linux and macOS. A launcher package must have an exe of the **current** name at the **root of the zip**; a package without one is rejected before anything is changed. A fork that already has players keeps its exe name for good.
 
 ## Launcher packages
 
@@ -24,7 +24,7 @@ The client's `AssemblyName` is `<LauncherExeName>` (default `OpenShardLauncher`)
 - its version is strictly higher than the running launcher's and not lower than the highest `launcher` version a manifest has offered before (downgrade protection, kept in `feed-state.json`),
 - the running launcher has a numeric version (dev builds such as `1.2.0-dev` are never offered one).
 
-Package zips are unpacked with the same safety checks as client packages: every entry must stay inside the target folder, no symlink entries, at most 20,000 entries and 4 GB unpacked.
+Package zips are unpacked with the same safety checks as game client packages: every entry must stay inside the target folder, no symlink entries, at most 20,000 entries and 4 GB unpacked.
 
 ## The update, step by step
 

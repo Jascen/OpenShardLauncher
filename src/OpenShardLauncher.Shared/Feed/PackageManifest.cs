@@ -7,7 +7,7 @@ namespace OpenShardLauncher.Shared.Feed;
 public static class PackageRole
 {
     public const string Launcher = "launcher"; // The launcher itself (self-update)
-    public const string Client = "client"; // The game client the launcher starts (any zip: TazUO launcher, ClassicUO, ...)
+    public const string Client = "client"; // The game client the launcher starts (any zip: TazUO launcher, TazUO, ClassicUO, ...)
 }
 
 // One downloadable package. File is the zip's name inside packages/, Sha256 is lowercase hex.
