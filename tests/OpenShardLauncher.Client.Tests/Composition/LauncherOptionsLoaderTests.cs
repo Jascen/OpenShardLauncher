@@ -41,13 +41,15 @@ public sealed class LauncherOptionsLoaderTests : IDisposable
         Assert.Equal(defaults.DefaultInstallFolder, empty.DefaultInstallFolder);
         Assert.Equal(defaults.PackageCheckInterval, empty.PackageCheckInterval);
         Assert.Empty(empty.TrustedPublicKeys);
-        Assert.True(empty.TazUO.Enabled);
-        Assert.Equal(defaults.TazUO.InstallFolder, empty.TazUO.InstallFolder);
-        Assert.Equal(defaults.TazUO.ExecutableName, empty.TazUO.ExecutableName);
+        Assert.True(empty.Client.Enabled);
+        Assert.Equal(defaults.Client.InstallFolder, empty.Client.InstallFolder);
+        Assert.Equal(defaults.Client.ExecutableName, empty.Client.ExecutableName);
+        Assert.Empty(empty.Client.Arguments);
 
-        var partial = JsonSerializer.Deserialize("""{ "TazUO": { "Profiles": [ { "Id": "shard" } ] } }""", LauncherOptionsJsonContext.Default.LauncherOptions)!;
-        Assert.True(partial.TazUO.Enabled);
-        Assert.Equal(new TazUOProfile { Id = "shard" }, Assert.Single(partial.TazUO.Profiles)); // 127.0.0.1:2593
+        var partial = JsonSerializer.Deserialize("""{ "Client": { "TazUOProfiles": [ { "Id": "shard" } ] } }""", LauncherOptionsJsonContext.Default.LauncherOptions)!;
+        Assert.True(partial.Client.Enabled);
+        Assert.Equal(defaults.Client.InstallFolder, partial.Client.InstallFolder);
+        Assert.Equal(new TazUOProfile { Id = "shard" }, Assert.Single(partial.Client.TazUOProfiles)); // 127.0.0.1:2593
     }
 
     public void Dispose() => _launcherFolder.Delete(recursive: true);

@@ -81,8 +81,8 @@ public static class StringKeys
     public const string DownloadingFiles = nameof(DownloadingFiles); // {0} = files done, {1} = total, {2} = speed
     public const string DownloadingBytes = nameof(DownloadingBytes); // {0} = done, {1} = total size, {2} = speed, {3} = time left
     public const string RemovingFiles = nameof(RemovingFiles); // {0} = files done, {1} = total
-    public const string InstallingTazUO = nameof(InstallingTazUO);
-    public const string DownloadingTazUO = nameof(DownloadingTazUO); // {0} = done, {1} = total size
+    public const string InstallingClient = nameof(InstallingClient);
+    public const string DownloadingClient = nameof(DownloadingClient); // {0} = done, {1} = total size
     public const string UpdatingLauncher = nameof(UpdatingLauncher);
     public const string DownloadingLauncher = nameof(DownloadingLauncher); // {0} = done, {1} = total size
     public const string CurrentFile = nameof(CurrentFile); // {0} = file name
@@ -110,7 +110,7 @@ public static class StringKeys
     public const string ManifestUntrustedWarning = nameof(ManifestUntrustedWarning);
     public const string ManifestUpdatingWarning = nameof(ManifestUpdatingWarning);
     public const string PackagesNotConfiguredWarning = nameof(PackagesNotConfiguredWarning);
-    public const string TazUOInstallFailedWarning = nameof(TazUOInstallFailedWarning);
+    public const string ClientInstallFailedWarning = nameof(ClientInstallFailedWarning);
     public const string SelfUpdateFailedWarning = nameof(SelfUpdateFailedWarning);
 
     // Launcher update errors

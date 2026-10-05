@@ -93,7 +93,7 @@ internal sealed class TestLauncher : IDisposable
     }
 }
 
-// Says whether TazUO is installed as the test sets it; starting it does nothing.
+// Says whether the client is installed as the test sets it; starting it does nothing.
 internal sealed class FakeGameLauncher : IGameLauncher
 {
     public bool Installed { get; set; }

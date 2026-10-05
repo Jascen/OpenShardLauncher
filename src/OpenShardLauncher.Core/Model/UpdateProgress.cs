@@ -6,7 +6,7 @@ public enum UpdatePhase
     Comparing,
     Downloading,
     RemovingFiles,
-    InstallingTazUO, // Downloading and installing the TazUO launcher, then setting up its profiles
+    InstallingClient, // Downloading and installing the game client, then setting up its TazUO profiles
     UpdatingLauncher, // Downloading and staging a new version of this launcher
 }
 

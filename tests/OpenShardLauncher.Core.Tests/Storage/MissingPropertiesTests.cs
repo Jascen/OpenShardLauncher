@@ -37,11 +37,11 @@ public sealed class MissingPropertiesTests : IDisposable
         File.WriteAllText(DataFolder.FeedStateFile, "{}");
         var store = new FeedStateStore(DataFolder, NullLogger<FeedStateStore>.Instance);
 
-        Assert.Null(store.GetInstalledVersion("tazuo"));
-        store.SetInstalledVersion("tazuo", "2.0.0");
+        Assert.Null(store.GetInstalledVersion("client"));
+        store.SetInstalledVersion("client", "2.0.0");
         store.SetLastFileListVersion(new Uri("https://updates.example.com/"), 5);
 
-        Assert.Equal("2.0.0", store.GetInstalledVersion("tazuo"));
+        Assert.Equal("2.0.0", store.GetInstalledVersion("client"));
         Assert.Equal(5, store.GetLastFileListVersion(new Uri("https://updates.example.com/")));
     }
 

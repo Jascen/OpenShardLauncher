@@ -43,7 +43,7 @@ public static class ErrorMessageMapper
         PackageWarning.ManifestUntrusted => new(StringKeys.ManifestUntrustedWarning),
         PackageWarning.ManifestUpdating => new(StringKeys.ManifestUpdatingWarning),
         PackageWarning.PackagesNotConfigured => new(StringKeys.PackagesNotConfiguredWarning),
-        PackageWarning.TazUOInstallFailed => new(StringKeys.TazUOInstallFailedWarning),
+        PackageWarning.ClientInstallFailed => new(StringKeys.ClientInstallFailedWarning),
         PackageWarning.SelfUpdateFailed => new(StringKeys.SelfUpdateFailedWarning),
         _ => throw new ArgumentOutOfRangeException(nameof(warning), warning, null),
     };

@@ -6,7 +6,7 @@ A plain static host for a feed folder produced by the [Publisher](../../tools/Op
 - Uses ASP.NET's static files: Range/`If-Range`, ETag/`Last-Modified`/304, HEAD, no directory listing, no paths outside the folder. Hidden and system files are never served.
 - `Cache-Control: public, max-age=31536000, immutable` on blobs, and `no-cache` on everything else.
 - `/health` returns only the status.
-- `/latest/{role}/{rid}` is a link that never changes, for your website or Discord. For example, `/latest/launcher/win-x64` redirects (302, `no-cache`) to the newest `launcher-*.win-x64.zip` in `packages/manifest.json`, and `/latest/tazuo/win-x64` does the same for TazUO. A role or platform the manifest doesn't list returns 404. The manifest is reread on every request, so a new publish shows up without a restart.
+- `/latest/{role}/{rid}` is a link that never changes, for your website or Discord. For example, `/latest/launcher/win-x64` redirects (302, `no-cache`) to the newest `launcher-*.win-x64.zip` in `packages/manifest.json`, and `/latest/client/win-x64` does the same for the game client. A role or platform the manifest doesn't list returns 404. The manifest is reread on every request, so a new publish shows up without a restart.
 - No CORS (the launcher isn't a browser client).
 - **Symlinks inside the feed folder are followed.** The folder is the operator's own; don't link to anything you don't want served.
 

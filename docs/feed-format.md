@@ -58,7 +58,7 @@ The Publisher keeps the blobs of the current list and of the previous one, so a 
 }
 ```
 
-- `role` is `launcher` (the launcher's own self-update) or `tazuo`.
+- `role` is `launcher` (the launcher's own self-update) or `client` (the game client the launcher starts, whatever it is: TazUO launcher, TazUO, ClassicUO).
 - `rid` is a .NET runtime identifier such as `win-x64`, `linux-x64`, `osx-x64` or `osx-arm64`.
 - `file` follows `{role}-{version}.{rid}.zip`, with a 2–4 part numeric version. The manifest lists only the newest version per role and platform.
 - A launcher accepts a package only if its version is strictly higher than the one installed and than the highest version it has seen for that role, so validly signed older manifests can't downgrade it.

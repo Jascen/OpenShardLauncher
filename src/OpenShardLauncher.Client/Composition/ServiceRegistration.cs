@@ -39,7 +39,7 @@ public static class ServiceRegistration
         services.AddSingleton<SettingsService>();
         services.AddSingleton(sp => sp.GetRequiredService<SettingsService>().ServerEndpoint);
         services.AddSingleton(sp => sp.GetRequiredService<SettingsService>().TransportPolicy);
-        services.TryAddSingleton<IGameLauncher, TazUOLauncher>();
+        services.TryAddSingleton<IGameLauncher, ClientLauncher>();
         services.TryAddSingleton(new InstalledLauncher(LauncherVersion.CurrentVersion, launcherFolder.Path, SelfUpdater.ExeName));
         return services;
     }

@@ -16,13 +16,14 @@ public sealed record PackageUpdates
 
     public FeedTrust? Trust { get; init; }
 
-    // The TazUO package to install: TazUO is missing or older than this. Null when it is up to date.
-    public PackageEntry? TazUO { get; init; }
+    // The client package to install: the client is missing or older than this. Null when it is up to date (or when the
+    // feed has no client package, e.g. because the client is part of the game files).
+    public PackageEntry? Client { get; init; }
 
     public IReadOnlyList<PackageWarning> Warnings { get; init; } = [];
 }
 
-// Reads the verified package manifest and decides whether TazUO needs installing or updating. Package problems only
+// Reads the verified package manifest and decides whether the game client needs installing or updating. Package problems only
 // produce warnings: game files update whatever happens here.
 //
 // Downgrade protection: the highest manifest version seen per role is remembered (FeedStateStore), and a validly signed
@@ -58,34 +59,34 @@ public sealed class PackageCheckService(
 
         var manifest = result.Document!;
         var updates = new PackageUpdates { Manifest = manifest, Trust = result.Trust };
-        if (!options.TazUO.Enabled)
+        if (!options.Client.Enabled)
         {
             return updates;
         }
 
-        if (platform.Rid is not { } rid || manifest.Find(PackageRole.TazUO, rid) is not { } package)
+        if (platform.Rid is not { } rid || manifest.Find(PackageRole.Client, rid) is not { } package)
         {
-            logger.LogInformation("The manifest has no TazUO package for {Platform}", platform.Rid ?? "this platform");
+            logger.LogInformation("The manifest has no client package for {Platform}", platform.Rid ?? "this platform");
             return updates;
         }
 
-        if (!AcceptVersion(PackageRole.TazUO, package))
+        if (!AcceptVersion(PackageRole.Client, package))
         {
             return updates with { Warnings = [PackageWarning.ManifestUntrusted] };
         }
 
-        var installed = feedState.GetInstalledVersion(PackageRole.TazUO);
+        var installed = feedState.GetInstalledVersion(PackageRole.Client);
         if (!game.IsInstalled(folder.Root))
         {
-            logger.LogInformation("TazUO is not installed; version {Version} is available", package.Version);
-            return updates with { TazUO = package };
+            logger.LogInformation("The client is not installed; version {Version} is available", package.Version);
+            return updates with { Client = package };
         }
 
         // Installed, but by something that didn't record a version: offer the package so the install is known again.
         if (installed is null || !Version.TryParse(installed, out var current) || PackageVersions.IsNewer(package.Version, current))
         {
-            logger.LogInformation("TazUO {Installed} can be updated to {Version}", installed ?? "(unknown version)", package.Version);
-            return updates with { TazUO = package };
+            logger.LogInformation("The client {Installed} can be updated to {Version}", installed ?? "(unknown version)", package.Version);
+            return updates with { Client = package };
         }
 
         return updates;

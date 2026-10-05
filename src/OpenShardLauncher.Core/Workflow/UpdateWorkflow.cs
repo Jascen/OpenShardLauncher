@@ -21,7 +21,8 @@ public sealed class UpdateWorkflow(
     CompareStage compare,
     DownloadStage download,
     PackageCheckService packages,
-    TazUOInstaller tazUO,
+    ClientInstaller clientInstaller,
+    TazUOProfileWriter tazUOProfiles,
     ILoggerFactory loggerFactory)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<UpdateWorkflow>();
@@ -37,7 +38,7 @@ public sealed class UpdateWorkflow(
     }
 
     // File list → filter → compare until the first difference → package check. UpdatesReady when files differ or
-    // need removing, PackagesReady when only TazUO does, otherwise Finished (verified).
+    // need removing, PackagesReady when only the client does, otherwise Finished (verified).
     public Task<UpdateOutcome> CheckAsync(
         InstallSession session, IProgress<UpdateProgress>? progress = null, CancellationToken cancellationToken = default) =>
         session.RunAsync(token => CheckCoreAsync(session, Gate(progress, session), token), cancellationToken);
@@ -89,7 +90,7 @@ public sealed class UpdateWorkflow(
         session.Packages = packageUpdates;
 
         var result = compared.Differences.Count > 0 || pendingRemovals > 0 ? UpdateResult.UpdatesReady
-            : packageUpdates.TazUO is not null ? UpdateResult.PackagesReady
+            : packageUpdates.Client is not null ? UpdateResult.PackagesReady
             : UpdateResult.Finished;
         _logger.LogInformation(
             "Check finished: {Result} ({Differences} differing found, {Removals} to remove)",
@@ -198,30 +199,30 @@ public sealed class UpdateWorkflow(
         }
     }
 
-    // Installs or updates TazUO before the files are compared, then makes sure its profiles exist. A failed install
-    // only adds a warning; the game files still update.
+    // Installs or updates the client before the files are compared, then makes sure its TazUO profiles exist. A failed
+    // install only adds a warning; the game files still update.
     private async Task<IReadOnlyList<PackageWarning>> ApplyPackagesAsync(
         InstallSession session, PackageUpdates packageUpdates, IProgress<UpdateProgress>? progress, CancellationToken cancellationToken)
     {
-        if (!options.TazUO.Enabled)
+        if (!options.Client.Enabled)
         {
             return packageUpdates.Warnings;
         }
 
         var warnings = packageUpdates.Warnings;
-        if (packageUpdates.TazUO is { } package)
+        if (packageUpdates.Client is { } package)
         {
-            if (await tazUO.InstallAsync(package, session.Folder, progress, cancellationToken).ConfigureAwait(false))
+            if (await clientInstaller.InstallAsync(package, session.Folder, progress, cancellationToken).ConfigureAwait(false))
             {
-                session.Packages = packageUpdates with { TazUO = null };
+                session.Packages = packageUpdates with { Client = null };
             }
             else
             {
-                warnings = [.. warnings, PackageWarning.TazUOInstallFailed];
+                warnings = [.. warnings, PackageWarning.ClientInstallFailed];
             }
         }
 
-        tazUO.EnsureProfiles(session.Folder);
+        tazUOProfiles.EnsureProfiles(session.Folder);
         return warnings;
     }
 

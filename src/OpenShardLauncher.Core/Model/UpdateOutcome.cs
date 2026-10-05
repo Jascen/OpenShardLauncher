@@ -4,7 +4,7 @@ public enum UpdateResult
 {
     Finished, // Everything checked, downloaded and set up. FailedFiles says whether any file failed
     UpdatesReady, // Files differ from the server or need removing, waiting for a download
-    PackagesReady, // Files match but the TazUO launcher is out of date or missing, waiting for a download
+    PackagesReady, // Files match but the game client is out of date or missing, waiting for a download
     Failed, // Stopped by an error, see UpdateOutcome.Error
     Cancelled,
 }

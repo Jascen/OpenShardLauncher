@@ -41,7 +41,7 @@
   <data name="CancelAndUpdateButton" xml:space="preserve"><value>Cancel and update</value></data>
 
   <!-- Unsigned feed notice -->
-  <data name="UnsignedFeedAllowedNotice" xml:space="preserve"><value>Unsigned feed allowed: game files and launcher/TazUO updates from this server aren't verified.</value></data>
+  <data name="UnsignedFeedAllowedNotice" xml:space="preserve"><value>Unsigned feed allowed: game files and launcher/game client updates from this server aren't verified.</value></data>
   <data name="UnsignedFeedInUseNotice" xml:space="preserve"><value>Unsigned feed: the files from this server are not signed, so where they came from isn't verified.</value></data>
 
   <!-- Dialogs -->
@@ -78,7 +78,7 @@
   <data name="StartingDownload" xml:space="preserve"><value>Starting the download..</value></data>
   <data name="UpdatesReady" xml:space="preserve"><value>Updates are ready to download.</value></data>
   <data name="RemovalsReady" xml:space="preserve"><value>Some files are no longer used and are ready to be removed.</value></data>
-  <data name="PackagesReady" xml:space="preserve"><value>The TazUO launcher is ready to download.</value></data>
+  <data name="PackagesReady" xml:space="preserve"><value>The game client is ready to download.</value></data>
   <data name="Finished" xml:space="preserve"><value>Done, you're all up to date!</value></data>
   <data name="FinishedWithFailures" xml:space="preserve"><value>Finished, but {0} file(s) couldn't be updated.</value></data>
   <data name="CheckFailed" xml:space="preserve"><value>Couldn't check for updates.</value></data>
@@ -93,8 +93,8 @@
   <data name="DownloadingFiles" xml:space="preserve"><value>Downloading files from the server.. ({0}/{1}) - ({2})</value></data>
   <data name="DownloadingBytes" xml:space="preserve"><value>Downloading.. {0} of {1} - {2}, {3} left</value></data>
   <data name="RemovingFiles" xml:space="preserve"><value>Removing files that are no longer used.. ({0}/{1})</value></data>
-  <data name="InstallingTazUO" xml:space="preserve"><value>Setting up the TazUO launcher..</value></data>
-  <data name="DownloadingTazUO" xml:space="preserve"><value>Downloading the TazUO launcher.. {0} of {1}</value></data>
+  <data name="InstallingClient" xml:space="preserve"><value>Setting up the game client..</value></data>
+  <data name="DownloadingClient" xml:space="preserve"><value>Downloading the game client.. {0} of {1}</value></data>
   <data name="UpdatingLauncher" xml:space="preserve"><value>Updating the launcher..</value></data>
   <data name="DownloadingLauncher" xml:space="preserve"><value>Downloading the launcher update.. {0} of {1}</value></data>
   <data name="CurrentFile" xml:space="preserve"><value>{0}</value></data>
@@ -115,14 +115,14 @@
   <data name="DiskFullError" xml:space="preserve"><value>The disk is full. Free up some space and click Retry.</value></data>
   <data name="FileFailedError" xml:space="preserve"><value>Failed to download [{0}] after several attempts, skipping..</value></data>
   <data name="FileLockedError" xml:space="preserve"><value>[{0}] is in use. Close the game and click Retry to finish updating.</value></data>
-  <data name="LaunchError" xml:space="preserve"><value>Unable to start the TazUO launcher.</value></data>
+  <data name="LaunchError" xml:space="preserve"><value>Unable to start the game client.</value></data>
 
   <!-- Package warnings -->
-  <data name="ManifestUnreachableWarning" xml:space="preserve"><value>Couldn't check for TazUO and launcher updates.</value></data>
+  <data name="ManifestUnreachableWarning" xml:space="preserve"><value>Couldn't check for game client and launcher updates.</value></data>
   <data name="ManifestUntrustedWarning" xml:space="preserve"><value>The server's launcher updates couldn't be verified, so they were not installed.</value></data>
   <data name="ManifestUpdatingWarning" xml:space="preserve"><value>The server is updating its launcher packages, they will be checked again next time.</value></data>
-  <data name="PackagesNotConfiguredWarning" xml:space="preserve"><value>This launcher has no signing key set up, so it can't install the TazUO launcher.</value></data>
-  <data name="TazUOInstallFailedWarning" xml:space="preserve"><value>Couldn't set up the TazUO launcher, it will be retried next time.</value></data>
+  <data name="PackagesNotConfiguredWarning" xml:space="preserve"><value>This launcher has no signing key set up, so it can't install the game client.</value></data>
+  <data name="ClientInstallFailedWarning" xml:space="preserve"><value>Couldn't set up the game client, it will be retried next time.</value></data>
   <data name="SelfUpdateFailedWarning" xml:space="preserve"><value>Couldn't update the launcher, it will be retried next time.</value></data>
 
   <!-- Launcher update errors -->

@@ -24,7 +24,7 @@ The client's `AssemblyName` is `<LauncherExeName>` (default `OpenShardLauncher`)
 - its version is strictly higher than the running launcher's and not lower than the highest `launcher` version a manifest has offered before (downgrade protection, kept in `feed-state.json`),
 - the running launcher has a numeric version (dev builds such as `1.2.0-dev` are never offered one).
 
-Package zips are unpacked with the same safety checks as TazUO packages: every entry must stay inside the target folder, no symlink entries, at most 20,000 entries and 4 GB unpacked.
+Package zips are unpacked with the same safety checks as client packages: every entry must stay inside the target folder, no symlink entries, at most 20,000 entries and 4 GB unpacked.
 
 ## The update, step by step
 
@@ -71,7 +71,7 @@ Arguments are passed as separate arguments (`ProcessStartInfo.ArgumentList`), no
 
 The data folder is portable first: `.openshardlauncher/` next to the exe. Only when that folder isn't writable does the launcher use the per-user folder `<AppData>/<AppDataFolderName>/` (`%AppData%` on Windows, `~/Library/Application Support` on macOS, `~/.config` on Linux; `AppDataFolderName` defaults to `OpenShardLauncher` and is set in `launcher.json`). A launcher using the AppData fallback can't update itself.
 
-The install folder has its own cache, `.openshardlauncher-cache/` (hash cache, partial downloads, TazUO packages being unpacked), which is safe to delete.
+The install folder has its own cache, `.openshardlauncher-cache/` (hash cache, partial downloads, client packages being unpacked), which is safe to delete.
 
 ### update-result.json
 

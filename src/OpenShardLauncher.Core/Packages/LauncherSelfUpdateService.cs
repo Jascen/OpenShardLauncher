@@ -268,7 +268,7 @@ public sealed class LauncherSelfUpdateService(
                 return SelfUpdateError.PackageInvalid;
             }
 
-            TazUOInstaller.MakeExecutable(exe);
+            ClientInstaller.MakeExecutable(exe);
             return null;
         }
         catch (InvalidDataException e)

@@ -19,14 +19,14 @@ public enum UpdateError
     FileLocked, // A file is open in another program, usually the game
 }
 
-// Problems with packages (TazUO, launcher). They only warn: game files still update.
+// Problems with packages (game client, launcher). They only warn: game files still update.
 public enum PackageWarning
 {
     ManifestUnreachable,
     ManifestUntrusted,
     ManifestUpdating,
     PackagesNotConfigured, // No trusted keys, so packages are disabled
-    TazUOInstallFailed,
+    ClientInstallFailed,
     SelfUpdateFailed,
 }
 

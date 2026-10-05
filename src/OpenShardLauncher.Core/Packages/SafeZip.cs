@@ -3,7 +3,7 @@ using OpenShardLauncher.Shared.Files;
 
 namespace OpenShardLauncher.Core.Packages;
 
-// Caps for one package zip. The defaults are far above any real launcher or TazUO package.
+// Caps for one package zip. The defaults are far above any real launcher or client package.
 public sealed record SafeZipLimits
 {
     public static SafeZipLimits Default { get; } = new();
@@ -13,7 +13,7 @@ public sealed record SafeZipLimits
     public long MaxTotalBytes { get; init; } = 4L * 1024 * 1024 * 1024;
 }
 
-// Extracts every package zip (TazUO, launcher). The signed manifest pins the zip's hash, so these checks are a
+// Extracts every package zip (client, launcher). The signed manifest pins the zip's hash, so these checks are a
 // backstop against a publishing mistake rather than the security control:
 // - every entry must resolve strictly inside the target (zip-slip)
 // - no symlink entries (a link could point anywhere, and later entries would write through it)
