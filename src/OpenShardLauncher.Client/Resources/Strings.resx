@@ -119,10 +119,12 @@
 
   <!-- Package warnings -->
   <data name="ManifestUnreachableWarning" xml:space="preserve"><value>Couldn't check for game client and launcher updates.</value></data>
+  <data name="ManifestInvalidWarning" xml:space="preserve"><value>The server's game client and launcher update list is damaged, so they were not checked.</value></data>
   <data name="ManifestUntrustedWarning" xml:space="preserve"><value>The server's launcher updates couldn't be verified, so they were not installed.</value></data>
   <data name="ManifestUpdatingWarning" xml:space="preserve"><value>The server is updating its launcher packages, they will be checked again next time.</value></data>
   <data name="PackagesNotConfiguredWarning" xml:space="preserve"><value>This launcher has no signing key set up, so it can't install the game client.</value></data>
   <data name="ClientInstallFailedWarning" xml:space="preserve"><value>Couldn't set up the game client, it will be retried next time.</value></data>
+  <data name="ClientUnavailableWarning" xml:space="preserve"><value>The server doesn't offer the game client for this computer yet, so the game can't start.</value></data>
   <data name="SelfUpdateFailedWarning" xml:space="preserve"><value>Couldn't update the launcher, it will be retried next time.</value></data>
 
   <!-- Launcher update errors -->

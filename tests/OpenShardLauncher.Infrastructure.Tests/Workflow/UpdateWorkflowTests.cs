@@ -72,7 +72,7 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
         Assert.Equal(UpdateResult.UpdatesReady, check.Result);
         Assert.Equal(UpdateResult.Finished, download.Result);
         Assert.Empty(download.FailedFiles);
-        Assert.Empty(download.PackageWarnings); // No manifest published: no packages, no warning
+        Assert.Equal([PackageWarning.ClientUnavailable], download.PackageWarnings); // No manifest published, so no client to start
         Assert.Equal("new content", ReadLocal("changed.mul"));
         Assert.Equal("missing", ReadLocal("Data/missing.mul"));
         Assert.Equal("missing", ReadLocal("Data/copy.mul"));
@@ -260,6 +260,51 @@ public sealed class UpdateWorkflowTests : IAsyncLifetime
         Assert.Equal(UpdateResult.PackagesReady, missing.Result);
         Assert.Equal(UpdateResult.Finished, rollback.Result);
         Assert.Equal([PackageWarning.ManifestUntrusted], rollback.PackageWarnings);
+    }
+
+    [Fact]
+    public async Task Manifest_InvalidEntriesAreSkipped_AndTheValidOnesStillOffered()
+    {
+        Publish();
+        var stale = new PackageEntry("tazuo", "2.6.20", TestLauncher.Platform, $"tazuo-2.6.20.{TestLauncher.Platform}.zip", new string('a', 64), 1);
+        var misnamed = ClientPackage("3.0.0") with { Version = "9.0.0" };
+        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, [stale, misnamed, ClientPackage("2.0.0")]), _key);
+
+        var outcome = await _launcher.Workflow.CheckAsync(_session, cancellationToken: TestToken);
+
+        Assert.Equal(UpdateResult.PackagesReady, outcome.Result);
+        Assert.Empty(outcome.PackageWarnings);
+    }
+
+    [Fact]
+    public async Task Manifest_NotValid_WarnsInvalid_ButGameFilesStillUpdate()
+    {
+        Publish(("art.mul", "art"));
+        var bytes = Encoding.UTF8.GetBytes("{ not json");
+        _server.WriteFile(FeedLayout.ManifestPath, bytes);
+        _server.WriteFile(FeedLayout.ManifestSignaturePath, Encoding.UTF8.GetBytes(FeedSigning.CreateSignatureFile(bytes, [_key])));
+
+        var outcome = await _launcher.Workflow.DownloadAsync(_session, cancellationToken: TestToken);
+
+        Assert.Equal(UpdateResult.Finished, outcome.Result);
+        Assert.Equal([PackageWarning.ManifestInvalid], outcome.PackageWarnings);
+        Assert.Equal("art", ReadLocal("art.mul"));
+    }
+
+    [Fact]
+    public async Task Client_NotInstalledAndNotOffered_WarnsUnavailable_OnceNothingElseIsPending()
+    {
+        Publish(("art.mul", "art"));
+        _server.PublishManifest(new PackageManifest(DateTimeOffset.UtcNow, []), _key);
+
+        var pending = await _launcher.Workflow.CheckAsync(_session, cancellationToken: TestToken);
+        var download = await _launcher.Workflow.DownloadAsync(_session, cancellationToken: TestToken);
+        var recheck = await _launcher.Workflow.CheckAsync(_session, cancellationToken: TestToken);
+
+        Assert.Empty(pending.PackageWarnings); // The game files may still bring the client
+        Assert.Equal([PackageWarning.ClientUnavailable], download.PackageWarnings);
+        Assert.Equal(UpdateResult.Finished, recheck.Result);
+        Assert.Equal([PackageWarning.ClientUnavailable], recheck.PackageWarnings);
     }
 
     [Fact]

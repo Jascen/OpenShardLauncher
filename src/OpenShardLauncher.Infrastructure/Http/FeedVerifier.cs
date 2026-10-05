@@ -36,7 +36,7 @@ public sealed class FeedVerifier(LauncherOptions options, ServerEndpoint endpoin
 
     public Task<FeedResult<PackageManifest>> VerifyManifestAsync(
         Uri server, Func<CancellationToken, Task<FeedDocument>> fetch, CancellationToken cancellationToken) =>
-        VerifyAsync(server, FeedLayout.ManifestPath, fetch, bytes => PackageManifest.Parse(bytes), FeedResult<PackageManifest>.Success, cancellationToken);
+        VerifyAsync(server, FeedLayout.ManifestPath, fetch, ParseManifest, FeedResult<PackageManifest>.Success, cancellationToken);
 
     private async Task<FeedResult<T>> VerifyAsync<T>(
         Uri server,
@@ -163,6 +163,10 @@ public sealed class FeedVerifier(LauncherOptions options, ServerEndpoint endpoin
             ? list
             : list with { Files = files, Removed = removed };
     }
+
+    // Same for the manifest: a bad entry (a stale package, or a role this launcher doesn't know) is skipped, the rest kept.
+    private PackageManifest ParseManifest(byte[] bytes) =>
+        PackageManifest.Parse(bytes, problem => logger.LogError("{Name} {Problem}; skipping it", FeedLayout.ManifestPath, problem));
 
     private bool IsContained(string name)
     {
