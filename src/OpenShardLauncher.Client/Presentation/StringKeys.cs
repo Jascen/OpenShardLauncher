@@ -16,6 +16,7 @@ public static class StringKeys
     public const string DataFolderFallbackNotice = nameof(DataFolderFallbackNotice);
     public const string LauncherUpdatedNotice = nameof(LauncherUpdatedNotice); // {0} = version
     public const string LauncherUpdateFailedNotice = nameof(LauncherUpdateFailedNotice); // {0} = version, {1} = reason (not localized)
+    public const string PoweredBy = nameof(PoweredBy);
 
     // Launcher update banner
     public const string LauncherUpdateAvailable = nameof(LauncherUpdateAvailable); // {0} = version
