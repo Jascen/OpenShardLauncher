@@ -28,6 +28,7 @@
   <data name="DataFolderFallbackNotice" xml:space="preserve"><value>This folder isn't writable, so settings are stored in your user profile and updates are disabled. Move the launcher to a writable folder.</value></data>
   <data name="LauncherUpdatedNotice" xml:space="preserve"><value>Updated the launcher to version {0}.</value></data>
   <data name="LauncherUpdateFailedNotice" xml:space="preserve"><value>Launcher update to version {0} failed: {1}</value></data>
+  <data name="PoweredBy" xml:space="preserve"><value>Powered by Open Shard Launcher</value></data>
 
   <!-- Launcher update banner -->
   <data name="LauncherUpdateAvailable" xml:space="preserve"><value>Launcher version {0} is available.</value></data>
